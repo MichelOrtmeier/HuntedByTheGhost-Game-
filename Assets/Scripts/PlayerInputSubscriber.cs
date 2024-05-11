@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -82,8 +79,7 @@ public class PlayerInputSubscriber : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (JumpIsFinished())//is executed immediately after each jump -> disable (OnColliderExit?)
-                             //also, running animation is not enabled when touching ground again when staying has been activated before
+        if (JumpIsFinished())
         {
             FinishJump();
         }
