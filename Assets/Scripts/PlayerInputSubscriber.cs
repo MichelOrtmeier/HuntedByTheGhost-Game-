@@ -77,7 +77,7 @@ public class PlayerInputSubscriber : MonoBehaviour
         myRigidBody.velocity = new Vector2(moveInput.x * moveSpeed, myRigidBody.velocity.y);
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         if (JumpIsFinished())
         {
