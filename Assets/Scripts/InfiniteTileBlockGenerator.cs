@@ -149,7 +149,6 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
         {
             // Isoliert die Positionen, die am weitesten rechts liegen
             Vector3Int lastPosition = deletedTilePositions.OrderByDescending(pos => pos.x).ThenBy(pos => pos.y).First();
-
             // Richtungen, in die der Pfad fortgesetzt werden könnte
             List<Vector3Int> directions = new List<Vector3Int>
     {
@@ -210,7 +209,7 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     private bool IsBorderTopTile(Vector3Int tilePosition)
     {
         int highestTilePosition = tilePositions.Max(pos => pos.y);
-        if(tilePosition.y >= highestTilePosition-2)
+        if(tilePosition.y >= highestTilePosition)
         {
             return true;
         }
@@ -220,7 +219,7 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     private bool IsBorderBottomTile(Vector3Int tilePosition)
     {
         int lowestTilePosition = tilePositions.Min(pos => pos.y);
-        if (tilePosition.y <= lowestTilePosition+2)
+        if (tilePosition.y <= lowestTilePosition)
         {
             return true;
         }
