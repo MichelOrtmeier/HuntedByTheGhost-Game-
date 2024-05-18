@@ -7,15 +7,8 @@ public class ObjectFollower : MonoBehaviour
 {
     [SerializeField] GameObject followObject;
     [SerializeField] float defaultVelocity=0.1f;
-    [SerializeField] float collisionVelocity=0.07f;
 
     Vector3 followObjectPosition;
-    float velocity;
-
-    private void Start()
-    {
-        velocity = defaultVelocity;
-    }
 
     // Update is called once per frame
     void Update()
@@ -24,23 +17,14 @@ public class ObjectFollower : MonoBehaviour
         {
             followObjectPosition = followObject.transform.position;
         }
-        transform.position = Vector3.MoveTowards(transform.position, followObjectPosition, velocity);
+        transform.position = Vector3.MoveTowards(transform.position, followObjectPosition, defaultVelocity * Time.deltaTime);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.gameObject == followObject)
+        if (collision.gameObject == followObject)
         {
             Destroy(followObject);
         }
-        else
-        {
-            velocity = collisionVelocity;
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        velocity = defaultVelocity;
     }
 }
