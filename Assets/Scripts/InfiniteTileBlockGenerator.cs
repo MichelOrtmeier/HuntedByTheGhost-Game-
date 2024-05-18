@@ -69,7 +69,7 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
 
     private void AddTileAt(Vector3Int tilePosition)
     {
-        if (TileAtPositionExists(tilePosition))
+        if (!TileAtPositionExists(tilePosition))
         {
             myTilemap.SetTile(tilePosition, ruleTile);
             tilePositions.Add(tilePosition);
@@ -78,7 +78,7 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
 
     private bool TileAtPositionExists(Vector3Int tilePosition)
     {
-        return GetTilesAtPosition(tilePosition).Count() == 0;
+        return !(GetTilesAtPosition(tilePosition).Count() == 0);
     }
 
     private IEnumerable<Vector3Int> GetTilesAtPosition(Vector3Int tilePosition)
