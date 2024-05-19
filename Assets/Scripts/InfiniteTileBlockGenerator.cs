@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -11,6 +12,7 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     [SerializeField] RuleTile ruleTile;
     [SerializeField] int bufferCameraEdgeTiles = 2;
     [SerializeField] int maxHeightDifference = 3;
+    [SerializeField] int initialHoleHeight = 10;
 
     // References
     Tilemap myTilemap;
@@ -23,6 +25,15 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     Vector3Int roundedCameraSize;
     int lastLeftTilePosition;
     int lastRightTilePosition;
+    List<Vector3Int> directions = new List<Vector3Int>
+        {
+            new Vector3Int(0, 2, 0),  // nach oben
+            new Vector3Int(2, 0, 0),  // nach rechts
+            new Vector3Int(0, -2, 0),  // nach unten
+            new Vector3Int(1,0,0),
+            new Vector3Int(0,1,0),
+            new Vector3Int(0,-1,0),
+        };
     Vector3Int lastPosition;
 
     private void Start()
@@ -76,7 +87,8 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
         {
             SpawnTileRowOnYAxis(y);
         }
-        CreateHoleInPlatform(new Vector3Int(roundedPlayerPositon.x,roundedPlayerPositon.y, 0), 2, 8);
+        CreateHoleInPlatform(new Vector3Int(roundedPlayerPositon.x,roundedPlayerPositon.y, 0), 2, 3+initialHoleHeight);
+        lastPosition = GetMostRightAndDownTilePosition();
     }
 
     private void CreateHoleInPlatform(Vector3Int position, int width, int depth)
@@ -158,57 +170,73 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     {
         while (true)
         {
-            // Isoliert die Positionen, die am weitesten rechts liegen
-            Vector3Int lastPosition = deletedTilePositions.OrderByDescending(pos => pos.x).ThenBy(pos => pos.y).First();
-            // Richtungen, in die der Pfad fortgesetzt werden könnte
-            List<Vector3Int> directions = new List<Vector3Int>
-    {
-        new Vector3Int(0, 2, 0),  // nach oben
-        new Vector3Int(2, 0, 0),  // nach rechts
-        new Vector3Int(0, -2, 0)  // nach unten
-    };
-
-            // Überprüft jede Richtung
-            foreach (Vector3Int direction in directions.ToList())
+            Debug.Log(lastPosition);
+            List<Vector3Int> allowedDirections = GetAllowedDirections(lastPosition);
+            if (allowedDirections.Count == 0)
             {
-                // Berechnet die Positionen der Tiles, die gelöscht werden würden
-                List<Vector3Int> toDelete = new List<Vector3Int>
+                break;
+            }
+            Vector3Int chosenDirection = allowedDirections[Random.Range(0, allowedDirections.Count)];
+            DeleteTilesInDirection(lastPosition, chosenDirection);
+            lastPosition += chosenDirection;
+        }
+    }
+
+    private bool IsTouchingBordersAtNextMove()
+    {
+        bool isTouching = true;
+        foreach(Vector3Int direction in directions)
+        {
+            if(!ContainsBorderTilePositions(GetTilesToBeDeleted(lastPosition, direction)))
+            {
+                isTouching = false;
+                break;
+            }
+        }
+        return isTouching;
+    }
+
+    private Vector3Int GetMostRightAndDownTilePosition()
+    {
+        return deletedTilePositions.OrderByDescending(pos => pos.x).ThenBy(pos => pos.y).First();
+    }
+
+    private Vector3Int GetMostLeftAndDownTilePosition()
+    {
+        return deletedTilePositions.OrderBy(pos => pos.x).ThenBy(pos => pos.y).First();
+    }
+
+    private List<Vector3Int> GetAllowedDirections(Vector3Int lastPosition)
+    {
+        List<Vector3Int> allowedDirections = directions.ToList();
+        foreach (Vector3Int direction in allowedDirections.ToList())
+        {
+            List<Vector3Int> toDelete = GetTilesToBeDeleted(lastPosition, direction);
+            if (ContainsBorderTilePositions(toDelete)
+                || ExceedMaxHeight(toDelete, lastPosition, direction)
+                || TilesAreAlreadyDeleted(toDelete))
+            {
+                allowedDirections.Remove(direction);
+            }
+        }
+        return allowedDirections;
+    }
+
+    private bool TilesAreAlreadyDeleted(List<Vector3Int> toDelete)
+    {
+        return toDelete.Count((pos) => deletedTilePositions.Contains(pos)) == 4;
+    }
+
+    private static List<Vector3Int> GetTilesToBeDeleted(Vector3Int lastPosition, Vector3Int direction)
+    {
+        List<Vector3Int> tilesToBeDeleted = new List<Vector3Int>
         {
             lastPosition + direction,
             lastPosition + direction + new Vector3Int(-1, 0, 0),
-            lastPosition + direction + new Vector3Int(1, 0, 0),
-            lastPosition + direction + new Vector3Int(0, -1, 0)
+            lastPosition + direction + new Vector3Int(0, 1, 0),
+            lastPosition + direction + new Vector3Int(-1, 1, 0)
         };
-                // Überprüft, ob die Löschung zulässig ist
-                if (ContainsBorderTilePositions(toDelete) ||
-                    (direction.y > 0 && toDelete.Max(pos => pos.y) - deletedTilePositions.Where(pos => pos.x == lastPosition.x).Min(pos => pos.y) > maxHeightDifference))  // zu hoher Höhenunterschied
-                {
-                    directions.Remove(direction);
-                }
-            }
-
-            // Wählt zufällig eine Richtung aus
-            if (directions.Count == 0)
-                break;
-            Vector3Int chosenDirection = directions[Random.Range(0, directions.Count)];
-
-            // Löscht die Tiles in der gewählten Richtung
-            for (int i = 0; i < 2; i++)
-            {
-                for (int j = -1; j <= 1; j++)
-                {
-                    Vector3Int pos = lastPosition + chosenDirection + new Vector3Int(j, i, 0);
-                    if (tilePositions.Contains(pos))
-                    {
-                        myTilemap.SetTile(pos, null);
-                        deletedTilePositions.Add(pos);
-                    }
-                }
-            }
-
-            // Aktualisiert die letzte Position
-            lastPosition += chosenDirection;
-        }
+        return tilesToBeDeleted;
     }
 
     private bool ContainsBorderTilePositions(List<Vector3Int> toDelete)
@@ -217,10 +245,26 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
         return answer;
     }
 
+    private bool ExceedMaxHeight(List<Vector3Int> toDelete, Vector3Int lastPosition, Vector3Int direction)
+    {
+        if(direction.y == 0) {  return false; }
+        IEnumerable<Vector3Int> deletedTilePositionsAtXCoordinate = deletedTilePositions.Where(pos => pos.x == lastPosition.x + direction.x);
+        int maxHeightAtXCoordinate = toDelete.Concat(deletedTilePositionsAtXCoordinate).Max(pos => pos.y);
+        int minHeightAtXCoordinate = toDelete.Concat(deletedTilePositionsAtXCoordinate).Min(pos => pos.y);
+        int heightDifference = maxHeightAtXCoordinate - minHeightAtXCoordinate;
+        bool exceedMaxHeight = heightDifference > GetRandomMaxHeightDifference();
+        return exceedMaxHeight;
+    }
+
+    private int GetRandomMaxHeightDifference()
+    {
+        return Random.Range(maxHeightDifference-1, maxHeightDifference+1);
+    }
+
     private bool IsBorderTopTile(Vector3Int tilePosition)
     {
         int highestTilePosition = tilePositions.Max(pos => pos.y);
-        if(tilePosition.y >= highestTilePosition)
+        if(tilePosition.y >= highestTilePosition-3)
         {
             return true;
         }
@@ -230,10 +274,19 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     private bool IsBorderBottomTile(Vector3Int tilePosition)
     {
         int lowestTilePosition = tilePositions.Min(pos => pos.y);
-        if (tilePosition.y <= lowestTilePosition)
+        if (tilePosition.y <= lowestTilePosition+3)
         {
             return true;
         }
         return false;
+    }
+
+    private void DeleteTilesInDirection(Vector3Int lastPosition, Vector3Int direction)
+    {
+        foreach (Vector3Int tilePosition in GetTilesToBeDeleted(lastPosition, direction)) 
+        {
+            myTilemap.SetTile(tilePosition, null);
+            deletedTilePositions.Add(tilePosition);
+        }
     }
 }
