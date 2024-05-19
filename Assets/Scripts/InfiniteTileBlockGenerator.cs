@@ -35,15 +35,18 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     private void Start()
     {
         UpdateTileBlock();
-        EnableInfiniteTileWayGenerator();
+        EnableInfiniteTileWayGenerators();
     }
 
-    private void EnableInfiniteTileWayGenerator()
+    private void EnableInfiniteTileWayGenerators()
     {
         InfiniteTilePathDigger wayGenerator;
         if (TryGetComponent<InfiniteTilePathDigger>(out wayGenerator))
         {
-            wayGenerator.DigHoleToStartPath();
+            foreach(InfiniteTilePathDigger digger in GetComponents<InfiniteTilePathDigger>())
+            {
+                digger.DigHoleToStartPath();
+            }
         }
     }
 
