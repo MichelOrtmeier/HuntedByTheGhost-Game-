@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.GraphView;
@@ -22,6 +23,8 @@ public class InfiniteTilePathDigger : MonoBehaviour
         new Vector3Int(0,1,0),
         new Vector3Int(0,-1,0),
     };
+    [SerializeField] int[] diggingDirectionsProbability = new int[6];
+    
 
     // References
     Tilemap myTilemap;
@@ -31,11 +34,39 @@ public class InfiniteTilePathDigger : MonoBehaviour
     List<Vector3Int> deletedTilePositions = new List<Vector3Int>();
     Vector3Int currentPositionInPath;
     Vector3Int lastPlayerPosition;
+    Dictionary<Vector3Int, int> diggingDirectionsProbabilityPairs = new Dictionary<Vector3Int, int>();
 
     private void Awake()
     {
         myTilemap = GetComponent<Tilemap>();
         myBlockGenerator = GetComponent<InfiniteTileBlockGenerator>();
+        TryCreateDiggingDirectionsProbabilityPairs();
+    }
+
+    private void TryCreateDiggingDirectionsProbabilityPairs()
+    {
+        if (DiggingDirectionProbabilityPairsAreNotCreatedProperly())
+        {
+            enabled = false;
+            throw new ArgumentException("The Properties diggingDirections/diggingDirectionsProbability do not fit to each other.");
+        }
+        else
+        {
+            CreateDiggingDirectionsProbabilityPairs();
+        }
+    }
+
+    private void CreateDiggingDirectionsProbabilityPairs()
+    {
+        for (int i = 0; i < diggingDirections.Length; i++)
+        {
+            diggingDirectionsProbabilityPairs.Add(diggingDirections[i], diggingDirectionsProbability[i]);
+        }
+    }
+
+    private bool DiggingDirectionProbabilityPairsAreNotCreatedProperly()
+    {
+        return diggingDirections.Length != diggingDirectionsProbability.Length || diggingDirectionsProbability.Contains(0);
     }
 
     public void DigHoleToStartPath()
@@ -100,11 +131,16 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private void ContinueDiggingPath()
     {
-        bool succeeded;
-        do
+        bool succeeded = true;
+        while (succeeded && IsDistantToBorders())
         {
             succeeded = TryDigNextBlockOfFourTiles();
-        } while (succeeded);
+        }
+    }
+
+    private bool IsDistantToBorders()
+    {
+        return myBlockGenerator.TilePositions.Any(pos => pos.x > currentPositionInPath.x);
     }
 
     private bool TryDigNextBlockOfFourTiles()
@@ -123,7 +159,28 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private Vector3Int ChooseDiggingDirection(List<Vector3Int> allowedDirections)
     {
-        return allowedDirections[Random.Range(0, allowedDirections.Count)];
+        int randomValue = UnityEngine.Random.Range(0, GetMaxRandomValue(allowedDirections));
+        int maxValueForCurrentDirection = 0;
+        foreach (Vector3Int direction in allowedDirections)
+        {
+            maxValueForCurrentDirection += diggingDirectionsProbabilityPairs[direction];
+            if (randomValue <= maxValueForCurrentDirection)
+            {
+                return direction;
+            }
+        }
+        throw new Exception("ChooseDiggingDirection could not be executed correctly");
+    }
+
+    private int GetMaxRandomValue(List<Vector3Int> allowedDirections)
+    {
+        int maxRandomValue = 1;
+        foreach (Vector3Int direction in allowedDirections)
+        {
+            maxRandomValue += diggingDirectionsProbabilityPairs[direction];
+        }
+
+        return maxRandomValue;
     }
 
     private void DigBlockOfFourTilesIn(Vector3Int chosenDirection)
@@ -197,7 +254,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private int GetRandomMaxHeightDifference()
     {
-        return Random.Range(maxHeightDifference - maxHeightDifferenceVariance, maxHeightDifference + 1);
+        return UnityEngine.Random.Range(maxHeightDifference - maxHeightDifferenceVariance, maxHeightDifference + 1);
     }
 
     private Vector3Int[] GetTilesToBeDeleted(Vector3Int diggingDirection)
