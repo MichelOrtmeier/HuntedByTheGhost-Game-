@@ -34,11 +34,19 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
         lastLeftTilePosition = GetLastLeftTilePosition();
         lastRightTilePosition = GetLastRightTilePosition();
         SpawnTileBlockInsideCameraView();
-        DeleteTilesOutsideCameraView();
         SpawnInitialPlatform();
+        GeneratePath();
     }
 
     private void Update()
+    {
+        if(roundedPlayerPositon.x < GetRoundedPlayerPosition().x || roundedPlayerPositon.x > GetRoundedPlayerPosition().x)
+        {
+            UpdateTileBlock();
+        }
+    }
+
+    private void UpdateTileBlock()
     {
         roundedPlayerPositon = GetRoundedPlayerPosition();
         roundedCameraSize = GetRoundedCameraSize();
@@ -98,11 +106,12 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
         {
             AddTileAt(new Vector3Int(x, y, 0));
         }
+        //hier separate Methode für zweites Mal erstellen: immer nur letzte x-Koordinate (letztelinke hinzufügen)
     }
 
     private void AddTileAt(Vector3Int tilePosition)
     {
-        if (TileAtPositionExists(tilePosition))
+        if (!TileAtPositionExists(tilePosition))
         {
             myTilemap.SetTile(tilePosition, ruleTile);
             tilePositions.Add(tilePosition);
@@ -111,7 +120,7 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
 
     private bool TileAtPositionExists(Vector3Int tilePosition)
     {
-        return GetTilesAtPosition(tilePosition).Count() == 0;
+        return GetTilesAtPosition(tilePosition).Count() > 0;
     }
 
     private IEnumerable<Vector3Int> GetTilesAtPosition(Vector3Int tilePosition)
@@ -123,6 +132,7 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
 
     private void DeleteTilesOutsideCameraView()
     {
+        //zunächst Ränder herausfiltern
         for (int i = tilePositions.Count - 1; i > 0; i--)
         {
             if (IsOutsideVisibleSpace(tilePositions[i]))
@@ -136,11 +146,12 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     {
         myTilemap.SetTile(tilePosition, null);
         tilePositions.Remove(tilePosition);
+        deletedTilePositions.Remove(tilePosition);
     }
 
     private bool IsOutsideVisibleSpace(Vector3Int tilePosition)
     {
-        return tilePosition.x < lastLeftTilePosition || tilePosition.x > lastRightTilePosition;
+        return tilePosition.x < lastLeftTilePosition/* || tilePosition.x > lastRightTilePosition*/;
     }
 
     private void GeneratePath()

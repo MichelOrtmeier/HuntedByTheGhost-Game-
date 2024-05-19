@@ -19,12 +19,4 @@ public class ObjectFollower : MonoBehaviour
         }
         transform.position = Vector3.MoveTowards(transform.position, followObjectPosition, defaultVelocity * Time.deltaTime);
     }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.gameObject == followObject)
-        {
-            Destroy(followObject);
-        }
-    }
 }
