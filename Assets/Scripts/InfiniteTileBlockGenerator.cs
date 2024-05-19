@@ -18,35 +18,33 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     Tilemap myTilemap;
     Camera myCamera;
 
-    // Variables
-    List<Vector3Int> tilePositions = new List<Vector3Int>();
-    List<Vector3Int> deletedTilePositions = new List<Vector3Int>();
+    // Properties
+    public List<Vector3Int> TilePositions { get; private set; } = new List<Vector3Int>();
+
     Vector3Int roundedPlayerPositon;
     Vector3Int roundedCameraSize;
     int lastLeftTilePosition;
     int lastRightTilePosition;
-    List<Vector3Int> directions = new List<Vector3Int>
-        {
-            new Vector3Int(0, 2, 0),  // nach oben
-            new Vector3Int(2, 0, 0),  // nach rechts
-            new Vector3Int(0, -2, 0),  // nach unten
-            new Vector3Int(1,0,0),
-            new Vector3Int(0,1,0),
-            new Vector3Int(0,-1,0),
-        };
-    Vector3Int lastPosition;
 
-    private void Start()
+    private void Awake()
     {
         myTilemap = GetComponent<Tilemap>();
         myCamera = Camera.main;
-        roundedPlayerPositon = GetRoundedPlayerPosition();
-        roundedCameraSize = GetRoundedCameraSize();
-        lastLeftTilePosition = GetLastLeftTilePosition();
-        lastRightTilePosition = GetLastRightTilePosition();
-        SpawnTileBlockInsideCameraView();
-        SpawnInitialPlatform();
-        GeneratePath();
+    }
+
+    private void Start()
+    {
+        UpdateTileBlock();
+        EnableInfiniteTileWayGenerator();
+    }
+
+    private void EnableInfiniteTileWayGenerator()
+    {
+        InfiniteTilePathDigger wayGenerator;
+        if (TryGetComponent<InfiniteTilePathDigger>(out wayGenerator))
+        {
+            wayGenerator.DigHoleToStartPath();
+        }
     }
 
     private void Update()
@@ -65,7 +63,6 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
         lastRightTilePosition = GetLastRightTilePosition();
         SpawnTileBlockInsideCameraView();
         DeleteTilesOutsideCameraView();
-        GeneratePath();
     }
 
     private Vector3Int GetRoundedPlayerPosition() => Vector3Int.FloorToInt(player.position);
@@ -81,29 +78,6 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
 
     private int GetLastRightTilePosition() => roundedPlayerPositon.x + roundedCameraSize.x + bufferCameraEdgeTiles;
 
-    private void SpawnInitialPlatform()
-    {
-        for (int y = 0; y > -height; y--)
-        {
-            SpawnTileRowOnYAxis(y);
-        }
-        CreateHoleInPlatform(new Vector3Int(roundedPlayerPositon.x,roundedPlayerPositon.y, 0), 2, 3+initialHoleHeight);
-        lastPosition = GetMostRightAndDownTilePosition();
-    }
-
-    private void CreateHoleInPlatform(Vector3Int position, int width, int depth)
-    {
-        for (int x = position.x; x < position.x + width; x++)
-        {
-            for (int y = position.y; y > position.y - depth; y--)
-            {
-                Vector3Int tilePosition = new Vector3Int(x, y, 0);
-                deletedTilePositions.Add(tilePosition);
-                myTilemap.SetTile(tilePosition, null);
-            }
-        }
-    }
-
     private void SpawnTileBlockInsideCameraView()
     {
         for (int y = 0; y > -height; y--)
@@ -118,7 +92,6 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
         {
             AddTileAt(new Vector3Int(x, y, 0));
         }
-        //hier separate Methode für zweites Mal erstellen: immer nur letzte x-Koordinate (letztelinke hinzufügen)
     }
 
     private void AddTileAt(Vector3Int tilePosition)
@@ -126,7 +99,7 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
         if (!TileAtPositionExists(tilePosition))
         {
             myTilemap.SetTile(tilePosition, ruleTile);
-            tilePositions.Add(tilePosition);
+            TilePositions.Add(tilePosition);
         }
     }
 
@@ -137,19 +110,18 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
 
     private IEnumerable<Vector3Int> GetTilesAtPosition(Vector3Int tilePosition)
     {
-        return from position in tilePositions
+        return from position in TilePositions
                where position == tilePosition
                select position;
     }
 
     private void DeleteTilesOutsideCameraView()
     {
-        //zunächst Ränder herausfiltern
-        for (int i = tilePositions.Count - 1; i > 0; i--)
+        for (int i = TilePositions.Count - 1; i > 0; i--)
         {
-            if (IsOutsideVisibleSpace(tilePositions[i]))
+            if (IsOutsideVisibleSpace(TilePositions[i]))
             {
-                DeleteTileOutsideCameraView(tilePositions[i]);
+                DeleteTileOutsideCameraView(TilePositions[i]);
             }
         }
     }
@@ -157,136 +129,11 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     private void DeleteTileOutsideCameraView(Vector3Int tilePosition)
     {
         myTilemap.SetTile(tilePosition, null);
-        tilePositions.Remove(tilePosition);
-        deletedTilePositions.Remove(tilePosition);
+        TilePositions.Remove(tilePosition);
     }
 
     private bool IsOutsideVisibleSpace(Vector3Int tilePosition)
     {
-        return tilePosition.x < lastLeftTilePosition/* || tilePosition.x > lastRightTilePosition*/;
-    }
-
-    private void GeneratePath()
-    {
-        while (true)
-        {
-            Debug.Log(lastPosition);
-            List<Vector3Int> allowedDirections = GetAllowedDirections(lastPosition);
-            if (allowedDirections.Count == 0)
-            {
-                break;
-            }
-            Vector3Int chosenDirection = allowedDirections[Random.Range(0, allowedDirections.Count)];
-            DeleteTilesInDirection(lastPosition, chosenDirection);
-            lastPosition += chosenDirection;
-        }
-    }
-
-    private bool IsTouchingBordersAtNextMove()
-    {
-        bool isTouching = true;
-        foreach(Vector3Int direction in directions)
-        {
-            if(!ContainsBorderTilePositions(GetTilesToBeDeleted(lastPosition, direction)))
-            {
-                isTouching = false;
-                break;
-            }
-        }
-        return isTouching;
-    }
-
-    private Vector3Int GetMostRightAndDownTilePosition()
-    {
-        return deletedTilePositions.OrderByDescending(pos => pos.x).ThenBy(pos => pos.y).First();
-    }
-
-    private Vector3Int GetMostLeftAndDownTilePosition()
-    {
-        return deletedTilePositions.OrderBy(pos => pos.x).ThenBy(pos => pos.y).First();
-    }
-
-    private List<Vector3Int> GetAllowedDirections(Vector3Int lastPosition)
-    {
-        List<Vector3Int> allowedDirections = directions.ToList();
-        foreach (Vector3Int direction in allowedDirections.ToList())
-        {
-            List<Vector3Int> toDelete = GetTilesToBeDeleted(lastPosition, direction);
-            if (ContainsBorderTilePositions(toDelete)
-                || ExceedMaxHeight(toDelete, lastPosition, direction)
-                || TilesAreAlreadyDeleted(toDelete))
-            {
-                allowedDirections.Remove(direction);
-            }
-        }
-        return allowedDirections;
-    }
-
-    private bool TilesAreAlreadyDeleted(List<Vector3Int> toDelete)
-    {
-        return toDelete.Count((pos) => deletedTilePositions.Contains(pos)) == 4;
-    }
-
-    private static List<Vector3Int> GetTilesToBeDeleted(Vector3Int lastPosition, Vector3Int direction)
-    {
-        List<Vector3Int> tilesToBeDeleted = new List<Vector3Int>
-        {
-            lastPosition + direction,
-            lastPosition + direction + new Vector3Int(-1, 0, 0),
-            lastPosition + direction + new Vector3Int(0, 1, 0),
-            lastPosition + direction + new Vector3Int(-1, 1, 0)
-        };
-        return tilesToBeDeleted;
-    }
-
-    private bool ContainsBorderTilePositions(List<Vector3Int> toDelete)
-    {
-        bool answer = toDelete.Any(pos => IsBorderTopTile(pos) || IsBorderBottomTile(pos) || !tilePositions.Contains(pos));
-        return answer;
-    }
-
-    private bool ExceedMaxHeight(List<Vector3Int> toDelete, Vector3Int lastPosition, Vector3Int direction)
-    {
-        if(direction.y == 0) {  return false; }
-        IEnumerable<Vector3Int> deletedTilePositionsAtXCoordinate = deletedTilePositions.Where(pos => pos.x == lastPosition.x + direction.x);
-        int maxHeightAtXCoordinate = toDelete.Concat(deletedTilePositionsAtXCoordinate).Max(pos => pos.y);
-        int minHeightAtXCoordinate = toDelete.Concat(deletedTilePositionsAtXCoordinate).Min(pos => pos.y);
-        int heightDifference = maxHeightAtXCoordinate - minHeightAtXCoordinate;
-        bool exceedMaxHeight = heightDifference > GetRandomMaxHeightDifference();
-        return exceedMaxHeight;
-    }
-
-    private int GetRandomMaxHeightDifference()
-    {
-        return Random.Range(maxHeightDifference-1, maxHeightDifference+1);
-    }
-
-    private bool IsBorderTopTile(Vector3Int tilePosition)
-    {
-        int highestTilePosition = tilePositions.Max(pos => pos.y);
-        if(tilePosition.y >= highestTilePosition-3)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private bool IsBorderBottomTile(Vector3Int tilePosition)
-    {
-        int lowestTilePosition = tilePositions.Min(pos => pos.y);
-        if (tilePosition.y <= lowestTilePosition+3)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private void DeleteTilesInDirection(Vector3Int lastPosition, Vector3Int direction)
-    {
-        foreach (Vector3Int tilePosition in GetTilesToBeDeleted(lastPosition, direction)) 
-        {
-            myTilemap.SetTile(tilePosition, null);
-            deletedTilePositions.Add(tilePosition);
-        }
+        return tilePosition.x < lastLeftTilePosition;
     }
 }
