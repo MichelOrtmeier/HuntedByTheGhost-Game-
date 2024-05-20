@@ -5,19 +5,19 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
-public class KeyTilemap : MonoBehaviour
+public class TileSpawnerExceededXDistance : MonoBehaviour
 {
     [SerializeField] Transform player;
     [SerializeField] int xDistanceExceededByPlayerBetweenKeySpawns = 50;
     [SerializeField] int xDistanceVariation  = 10;
     [SerializeField] InfiniteTilePathDigger tilePathDigger;
-    [SerializeField] Tile keyTile;
-    [SerializeField] RuleTile nextTile;
+    [SerializeField] Tile tile;
 
     Vector3 lastPlayerPosition;
     int nextXDistance;
     InfiniteTilePathDigger[] deletedTilesReferences;
-    Tilemap myKeyTilemap;
+    Tilemap myTilemapToSpawnTilesOn;
+    List<Vector3Int> tileSpawnPositions = new List<Vector3Int>();
 
     // Start is called before the first frame update
     void Start()
@@ -25,7 +25,7 @@ public class KeyTilemap : MonoBehaviour
         lastPlayerPosition = player.position;
         nextXDistance = GetNextXDistance();
         deletedTilesReferences = tilePathDigger.gameObject.GetComponents<InfiniteTilePathDigger>();
-        myKeyTilemap = GetComponent<Tilemap>();
+        myTilemapToSpawnTilesOn = GetComponent<Tilemap>();
     }
 
     private int GetNextXDistance()
@@ -38,12 +38,19 @@ public class KeyTilemap : MonoBehaviour
     {
         if(player.position.x - lastPlayerPosition.x > nextXDistance)
         {
-             myKeyTilemap.SetTile(GetNextKeyTilePosition(), keyTile);
-            lastPlayerPosition = player.position;
+            SpawnNextTile();
         }
     }
 
-    private Vector3Int GetNextKeyTilePosition()
+    private void SpawnNextTile()
+    {
+        Vector3Int nextTilePosition = GetNexTileSpawnPosition();
+        myTilemapToSpawnTilesOn.SetTile(GetNexTileSpawnPosition(), tile);
+        tileSpawnPositions.Add(nextTilePosition);
+        lastPlayerPosition = player.position;
+    }
+
+    private Vector3Int GetNexTileSpawnPosition()
     {
         Vector3Int[] deletedTilePositions = GetDeletedTilePositions();
         return deletedTilePositions.OrderByDescending(pos => pos.x).ThenByDescending(pos => pos.y).First();
@@ -63,17 +70,15 @@ public class KeyTilemap : MonoBehaviour
     {
         if(collision.gameObject == player.gameObject)
         {
-            SceneManager.LoadScene(GetNextSceneIndex());
+            DeleteTilesSpawned();
         }
     }
 
-    private int GetNextSceneIndex()
+    private void DeleteTilesSpawned()
     {
-        int nextSceneIndex;
-        do
+        foreach (Vector3Int tilePosition in tileSpawnPositions)
         {
-            nextSceneIndex = Random.Range(0, SceneManager.sceneCountInBuildSettings);
-        } while (nextSceneIndex == SceneManager.GetActiveScene().buildIndex);
-        return nextSceneIndex;
+            myTilemapToSpawnTilesOn.SetTile(tilePosition, null);
+        }
     }
 }

@@ -4,14 +4,13 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class InfiniteTileBlockGenerator : MonoBehaviour
+public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 {
     // SerializeFields
     [SerializeField] int height = 1;
     [SerializeField] Transform player;
     [SerializeField] RuleTile ruleTile;
     [SerializeField] int bufferCameraEdgeTiles = 2;
-    [SerializeField] int maxHeightDifference = 3;
 
     // References
     Tilemap myTilemap;
@@ -137,5 +136,10 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     private bool IsOutsideVisibleSpace(Vector3Int tilePosition)
     {
         return tilePosition.x < lastLeftTilePosition;
+    }
+
+    public override void ChangeTheme(ThemeSO newTheme)
+    {
+        ruleTile = newTheme.RuleTile;
     }
 }
