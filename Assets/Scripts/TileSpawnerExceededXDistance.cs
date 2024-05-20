@@ -70,12 +70,13 @@ public class TileSpawnerExceededXDistance : MonoBehaviour
     {
         if(collision.gameObject == player.gameObject)
         {
-            DeleteTilesSpawned();
+            StartCoroutine(DeleteTilesSpawned());
         }
     }
 
-    private void DeleteTilesSpawned()
+    private IEnumerator DeleteTilesSpawned()
     {
+        yield return new WaitForEndOfFrame();
         foreach (Vector3Int tilePosition in tileSpawnPositions)
         {
             myTilemapToSpawnTilesOn.SetTile(tilePosition, null);

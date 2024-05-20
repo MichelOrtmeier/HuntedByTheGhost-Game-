@@ -8,7 +8,7 @@ public class ThemeSO : ScriptableObject
     [Header("Colors")]
     [SerializeField] Color backgroundColor;
     [SerializeField] Color groundTilemapColor;
-    [SerializeField] float colorTransitionDuration;
+    [SerializeField] float colorTransitionSpeed;
 
     [Header("Infinite Tile Block Generator")]
     [SerializeField] RuleTile ruleTile;
@@ -16,5 +16,5 @@ public class ThemeSO : ScriptableObject
     public RuleTile RuleTile { get { return ruleTile; } }
     public Color BackgroundColor { get { return backgroundColor;} }
     public Color GroundTilemapColor {  get { return groundTilemapColor;} }
-    public float ColorTransitionDuration { get {  return colorTransitionDuration;} }
+    public float ColorTransitionSpeed { get {  return colorTransitionSpeed;} }
 }
