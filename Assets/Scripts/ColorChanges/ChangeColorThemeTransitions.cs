@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class ColorTransitionsInGame : ChangeOnThemeChange
+public class ChangeColorThemeTransitions : ChangeOnThemeChange
 {
     [SerializeField] CameraColorChanger cameraChanger;
     [SerializeField] TilemapColorChanger groundColorChanger;
