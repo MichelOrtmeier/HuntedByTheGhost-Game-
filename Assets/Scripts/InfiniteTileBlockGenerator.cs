@@ -12,7 +12,6 @@ public class InfiniteTileBlockGenerator : MonoBehaviour
     [SerializeField] RuleTile ruleTile;
     [SerializeField] int bufferCameraEdgeTiles = 2;
     [SerializeField] int maxHeightDifference = 3;
-    [SerializeField] int initialHoleHeight = 10;
 
     // References
     Tilemap myTilemap;
