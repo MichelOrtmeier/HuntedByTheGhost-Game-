@@ -11,7 +11,7 @@ public class ChangeInfiniteTilePathDiggersOnThemeChange : ChangeOnThemeChange
     ThemeSO newTheme;
     InfiniteTilePathDigger[] currentDiggers;
 
-    private void Start()
+    private void Awake()
     {
         pathDiggersGameObject = startDigger.gameObject;
     }

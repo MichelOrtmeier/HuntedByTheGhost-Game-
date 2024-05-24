@@ -8,14 +8,19 @@ public class ThemeChanger : MonoBehaviour
     [SerializeField] int startThemeIndex = 0;
 
     ThemeSO currentTheme;
-    bool isFirstThemeChange;
+    bool isFirstThemeChange = true;
+
+    private void Start()
+    {
+        SelectFirstCurrentTheme();
+        ChangeAllChangeOnThemeChangeObjects();
+    }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log("Entered OnTriggerEnter");
+         Debug.Log("Entered OnTriggerEnter");
         if(player == collision.gameObject)
         {
-            SelectFirstCurrentTheme();
             ChangeTheme();
         }
     }
@@ -31,8 +36,14 @@ public class ThemeChanger : MonoBehaviour
 
     private void ChangeTheme()
     {
+        SelectFirstCurrentTheme();
         currentTheme = GetNextTheme();
-        foreach(ChangeOnThemeChange themeObject in FindObjectsOfType<ChangeOnThemeChange>())
+        ChangeAllChangeOnThemeChangeObjects();
+    }
+
+    private void ChangeAllChangeOnThemeChangeObjects()
+    {
+        foreach (ChangeOnThemeChange themeObject in FindObjectsOfType<ChangeOnThemeChange>())
         {
             themeObject.ChangeTheme(currentTheme);
         }
@@ -40,11 +51,14 @@ public class ThemeChanger : MonoBehaviour
 
     private ThemeSO GetNextTheme()
     {
-        ThemeSO nextTheme;
-        do
+        ThemeSO nextTheme = currentTheme;
+        if(themes.Length > 1)
         {
-            nextTheme = themes[Random.Range(0, themes.Length)];
-        } while (nextTheme == currentTheme && themes.Length > 1);
+            do
+            {
+                nextTheme = themes[Random.Range(0, themes.Length)];
+            } while (nextTheme == currentTheme);
+        }
         return nextTheme;
     }
 }
