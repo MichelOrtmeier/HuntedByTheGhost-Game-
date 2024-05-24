@@ -12,6 +12,7 @@ public class ThemeChanger : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        Debug.Log("Entered OnTriggerEnter");
         if(player == collision.gameObject)
         {
             SelectFirstCurrentTheme();
@@ -43,7 +44,7 @@ public class ThemeChanger : MonoBehaviour
         do
         {
             nextTheme = themes[Random.Range(0, themes.Length)];
-        } while (currentTheme != null && nextTheme == currentTheme && themes.Length > 1);
+        } while (nextTheme == currentTheme && themes.Length > 1);
         return nextTheme;
     }
 }

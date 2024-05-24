@@ -13,8 +13,11 @@ public class ThemeSO : ScriptableObject
     [Header("Infinite Tile Block Generator")]
     [SerializeField] RuleTile ruleTile;
 
+    [SerializeField] DiggingDirectionsProbabilityPairsSO[] tilePathDiggerSettings;
+
     public RuleTile RuleTile { get { return ruleTile; } }
     public Color BackgroundColor { get { return backgroundColor;} }
     public Color GroundTilemapColor {  get { return groundTilemapColor;} }
     public float ColorTransitionSpeed { get {  return colorTransitionSpeed;} }
+    public DiggingDirectionsProbabilityPairsSO[] TilePathDiggerSettings { get { return tilePathDiggerSettings; } }
 }

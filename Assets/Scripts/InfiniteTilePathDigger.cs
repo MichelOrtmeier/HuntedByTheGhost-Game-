@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -32,14 +33,24 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     //Variables
     public List<Vector3Int> DeletedTilePositions { get; private set; } = new List<Vector3Int>();
+    public Vector3Int CurrentPositionInPath { get => currentPositionInPath; }
+
     Vector3Int currentPositionInPath;
     Vector3Int lastPlayerPosition;
     Dictionary<Vector3Int, int> diggingDirectionsProbabilityPairs = new Dictionary<Vector3Int, int>();
+    bool pathIsStarted;
 
     private void Awake()
     {
         myTilemap = GetComponent<Tilemap>();
         myBlockGenerator = GetComponent<InfiniteTileBlockGenerator>();
+        TryCreateDiggingDirectionsProbabilityPairs();
+    }
+
+    public void ChangeDiggingDirectionsProbabilityPairs(DiggingDirectionsProbabilityPairsSO settings)
+    {
+        this.diggingDirections = settings.DiggingDirections;
+        this.diggingDirectionsProbability = settings.DiggingDirectionsProbability;
         TryCreateDiggingDirectionsProbabilityPairs();
     }
 
@@ -58,6 +69,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private void CreateDiggingDirectionsProbabilityPairs()
     {
+        diggingDirectionsProbabilityPairs.Clear();
         for (int i = 0; i < diggingDirections.Length; i++)
         {
             diggingDirectionsProbabilityPairs.Add(diggingDirections[i], diggingDirectionsProbability[i]);
@@ -71,8 +83,16 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     public void DigHoleToStartPath()
     {
+        pathIsStarted = true;
         DigHoleOfTiles(new Vector3Int(0, 0, 0), 2, initialHoleHeight);
         currentPositionInPath = GetMostRightAndDownTilePosition();
+        ContinueDiggingPath();
+    }
+
+    public void SetCurrentPositionToStartPath(Vector3Int currentPositionInPath)
+    {
+        pathIsStarted = true;
+        this.currentPositionInPath = currentPositionInPath;
         ContinueDiggingPath();
     }
 
@@ -110,7 +130,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
     private void LateUpdate()
     {
         Vector3Int currentPlayerPosition = Vector3Int.FloorToInt(playerPosition.position);
-        if (currentPlayerPosition.x > lastPlayerPosition.x)
+        if (currentPlayerPosition.x > lastPlayerPosition.x && pathIsStarted)
         {
             DeleteDeletedTilePositionsOutsideVisibleSpace();
             ContinueDiggingPath();

@@ -77,6 +77,7 @@ public class TileSpawnerExceededXDistance : MonoBehaviour
     private IEnumerator DeleteTilesSpawned()
     {
         yield return new WaitForEndOfFrame();
+        yield return new WaitForEndOfFrame();
         foreach (Vector3Int tilePosition in tileSpawnPositions)
         {
             myTilemapToSpawnTilesOn.SetTile(tilePosition, null);
