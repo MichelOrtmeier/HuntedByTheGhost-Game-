@@ -1,28 +1,37 @@
 ﻿
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
-public class ThemeChanger : MonoBehaviour
+public class ThemeOnExceededXDistanceChanger : MonoBehaviour
 {
-    [SerializeField] GameObject player;
+    [SerializeField] Transform player;
     [SerializeField] ThemeSO[] themes;
     [SerializeField] int startThemeIndex = 0;
+    [SerializeField] int xDistanceExceededByPlayerBetweenKeySpawns = 50;
+    [SerializeField] int xDistanceVariation = 10;
 
     ThemeSO currentTheme;
     bool isFirstThemeChange = true;
+    Vector3 lastPlayerPosition;
+    int nextXDistance;
 
     private void Start()
     {
         SelectFirstCurrentTheme();
         ChangeAllChangeOnThemeChangeObjects();
+        ResetNextXDistanceVariables();
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void ResetNextXDistanceVariables()
     {
-         Debug.Log("Entered OnTriggerEnter");
-        if(player == collision.gameObject)
-        {
-            ChangeTheme();
-        }
+        nextXDistance = GetNextXDistance();
+        lastPlayerPosition.x = player.position.x;
+    }
+
+    private int GetNextXDistance()
+    {
+        return Random.Range(xDistanceExceededByPlayerBetweenKeySpawns - xDistanceVariation, xDistanceExceededByPlayerBetweenKeySpawns + xDistanceVariation);
     }
 
     private void SelectFirstCurrentTheme()
@@ -31,6 +40,15 @@ public class ThemeChanger : MonoBehaviour
         {
             currentTheme = themes[startThemeIndex];
             isFirstThemeChange = false;
+        }
+    }
+
+    void Update()
+    {
+        if (player.position.x - lastPlayerPosition.x > nextXDistance)
+        {
+            ChangeTheme();
+            ResetNextXDistanceVariables();
         }
     }
 
