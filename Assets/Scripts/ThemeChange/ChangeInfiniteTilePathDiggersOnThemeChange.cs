@@ -1,7 +1,4 @@
 ﻿using UnityEngine;
-using Unity;
-using System.Collections.Generic;
-using System.Linq;
 
 public class ChangeInfiniteTilePathDiggersOnThemeChange : ChangeOnThemeChange
 {
@@ -20,9 +17,9 @@ public class ChangeInfiniteTilePathDiggersOnThemeChange : ChangeOnThemeChange
     {
         this.newTheme = newTheme;
         InfiniteTilePathDigger[] currentDiggers = pathDiggersGameObject.GetComponents<InfiniteTilePathDigger>();
-        if(currentDiggers.Length == newTheme.TilePathDiggerSettings.Length)
+        if (currentDiggers.Length == newTheme.TilePathDiggerSettings.Length)
         {
-            ChangeTilePathDiggers(newTheme, currentDiggers);
+            ChangeTilePathDiggers();
         }
         else
         {
@@ -31,7 +28,7 @@ public class ChangeInfiniteTilePathDiggersOnThemeChange : ChangeOnThemeChange
         }
     }
 
-    private static void ChangeTilePathDiggers(ThemeSO newTheme, InfiniteTilePathDigger[] currentDiggers)
+    private void ChangeTilePathDiggers()
     {
         for (int i = 0; i < currentDiggers.Length; i++)
         {

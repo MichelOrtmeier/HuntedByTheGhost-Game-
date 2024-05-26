@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -27,7 +23,7 @@ namespace Assets.Scripts
             if (currentChangePosition < 1)
             {
                 currentChangePosition += Time.deltaTime * changeSpeed;
-                currentChangePosition = Math.Clamp(currentChangePosition,0, 1);
+                currentChangePosition = Math.Clamp(currentChangePosition, 0, 1);
                 SetChangeColor(Color32.Lerp(startColor, endColor, currentChangePosition));
             }
         }
