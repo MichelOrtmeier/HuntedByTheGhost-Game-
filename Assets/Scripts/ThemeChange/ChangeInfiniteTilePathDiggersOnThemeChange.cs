@@ -16,7 +16,7 @@ public class ChangeInfiniteTilePathDiggersOnThemeChange : ChangeOnThemeChange
     public override void ChangeTheme(ThemeSO newTheme)
     {
         this.newTheme = newTheme;
-        InfiniteTilePathDigger[] currentDiggers = pathDiggersGameObject.GetComponents<InfiniteTilePathDigger>();
+        currentDiggers = pathDiggersGameObject.GetComponents<InfiniteTilePathDigger>();
         if (currentDiggers.Length == newTheme.TilePathDiggerSettings.Length)
         {
             ChangeTilePathDiggers();
