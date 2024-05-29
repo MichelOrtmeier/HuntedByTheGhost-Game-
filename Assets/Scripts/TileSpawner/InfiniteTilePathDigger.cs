@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -13,7 +11,6 @@ public class InfiniteTilePathDigger : MonoBehaviour
     [SerializeField] int maxHeightDifference = 4;
     [SerializeField] int maxHeightDifferenceVariance = 3;
     [SerializeField] int initialHoleHeight = 10;
-    [SerializeField] int tileBlockBorderHeight = 3;
     [SerializeField] Transform playerPosition;
     [SerializeField] Vector3Int[] diggingDirections = new Vector3Int[]
     {
