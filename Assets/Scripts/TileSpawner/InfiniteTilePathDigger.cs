@@ -236,28 +236,8 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private bool TilesToBeDeletedContainBorderPositions(Vector3Int diggingDirection)
     {
-        bool answer = GetTilesToBeDeleted(diggingDirection).Any(pos => IsBorderTopTile(pos) || IsBorderBottomTile(pos) || !myBlockGenerator.TilePositions.Contains(pos));
+        bool answer = GetTilesToBeDeleted(diggingDirection).Any(pos => myBlockGenerator.IsBorderTopTile(pos) || myBlockGenerator.IsBorderBottomTile(pos) || !myBlockGenerator.TilePositions.Contains(pos));
         return answer;
-    }
-
-    private bool IsBorderTopTile(Vector3Int tilePosition)
-    {
-        int highestTilePosition = myBlockGenerator.TilePositions.Max(pos => pos.y);
-        if (tilePosition.y >= highestTilePosition - tileBlockBorderHeight)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private bool IsBorderBottomTile(Vector3Int tilePosition)
-    {
-        int lowestTilePosition = myBlockGenerator.TilePositions.Min(pos => pos.y);
-        if (tilePosition.y <= lowestTilePosition + tileBlockBorderHeight)
-        {
-            return true;
-        }
-        return false;
     }
 
     private bool TilesToBeDeletedExceedRandomMaxHeight(Vector3Int diggingDirection)

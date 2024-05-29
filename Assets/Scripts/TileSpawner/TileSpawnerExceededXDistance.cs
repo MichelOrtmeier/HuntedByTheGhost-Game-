@@ -11,7 +11,7 @@ public class TileSpawnerExceededXDistance : MonoBehaviour
     [SerializeField] int xDistanceExceededByPlayerBetweenKeySpawns = 50;
     [SerializeField] int xDistanceVariation  = 10;
     [SerializeField] InfiniteTilePathDigger tilePathDigger;
-    [SerializeField] Tile tile;
+    [SerializeField] TileBase tile;
 
     Vector3 lastPlayerPosition;
     int nextXDistance;
@@ -19,7 +19,6 @@ public class TileSpawnerExceededXDistance : MonoBehaviour
     Tilemap myTilemapToSpawnTilesOn;
     List<Vector3Int> tileSpawnPositions = new List<Vector3Int>();
 
-    // Start is called before the first frame update
     void Start()
     {
         lastPlayerPosition = player.position;

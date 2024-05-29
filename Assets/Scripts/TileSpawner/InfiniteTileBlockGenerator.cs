@@ -4,6 +4,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+[RequireComponent(typeof(Tilemap))]
 public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 {
     // SerializeFields
@@ -11,6 +12,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     [SerializeField] Transform player;
     [SerializeField] RuleTile ruleTile;
     [SerializeField] int bufferCameraEdgeTiles = 2;
+    [SerializeField] int minBorderSizeForDiggersAndBursters;
 
     // References
     Tilemap myTilemap;
@@ -141,5 +143,25 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     public override void ChangeTheme(ThemeSO newTheme)
     {
         ruleTile = newTheme.RuleTile;
+    }
+
+    public bool IsBorderTopTile(Vector3Int tilePosition)
+    {
+        int highestTilePosition = TilePositions.Max(pos => pos.y);
+        if (tilePosition.y >= highestTilePosition - minBorderSizeForDiggersAndBursters)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public bool IsBorderBottomTile(Vector3Int tilePosition)
+    {
+        int lowestTilePosition = TilePositions.Min(pos => pos.y);
+        if (tilePosition.y <= lowestTilePosition + minBorderSizeForDiggersAndBursters)
+        {
+            return true;
+        }
+        return false;
     }
 }
