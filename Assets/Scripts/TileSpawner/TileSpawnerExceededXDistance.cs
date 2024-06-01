@@ -15,16 +15,16 @@ public class TileSpawnerExceededXDistance : MonoBehaviour
 
     Vector3 lastPlayerPosition;
     int nextXDistance;
-    InfiniteTilePathDigger[] deletedTilesReferences;
     Tilemap myTilemapToSpawnTilesOn;
     List<Vector3Int> tileSpawnPositions = new List<Vector3Int>();
+    InfiniteTilePathDigger[] pathDiggers;
 
     void Start()
     {
         lastPlayerPosition = player.position;
         nextXDistance = GetNextXDistance();
-        deletedTilesReferences = tilePathDigger.gameObject.GetComponents<InfiniteTilePathDigger>();
         myTilemapToSpawnTilesOn = GetComponent<Tilemap>();
+        pathDiggers = FindObjectsOfType<InfiniteTilePathDigger>();
     }
 
     private int GetNextXDistance()
@@ -58,9 +58,9 @@ public class TileSpawnerExceededXDistance : MonoBehaviour
     private Vector3Int[] GetDeletedTilePositions()
     {
         List<Vector3Int> deletedTilePositions = new List<Vector3Int>();
-        foreach(InfiniteTilePathDigger digger in deletedTilesReferences)
+        foreach(InfiniteTilePathDigger pathDigger in pathDiggers)
         {
-            deletedTilePositions.Add(digger.DeletedTilePositions.OrderByDescending(pos => pos.x).ThenByDescending(pos => pos.y).First());
+            deletedTilePositions.Add(pathDigger.DeletedTilePositions.OrderByDescending(pos => pos.x).ThenByDescending(pos => pos.y).First());
         }
         return deletedTilePositions.ToArray();
     }

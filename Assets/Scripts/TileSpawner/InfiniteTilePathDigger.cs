@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
@@ -38,6 +39,8 @@ public class InfiniteTilePathDigger : MonoBehaviour
     Vector3Int lastPlayerPosition;
     Dictionary<Vector3Int, int> diggingDirectionsProbabilityPairs = new Dictionary<Vector3Int, int>();
     bool pathIsStarted;
+    Vector3Int[] tilesToBeDeleted;
+    Vector3Int[] tilePositionsInFrontOfDigger;
 
     private void Awake()
     {
@@ -88,11 +91,9 @@ public class InfiniteTilePathDigger : MonoBehaviour
         ContinueDiggingPath();
     }
 
-    public void SetCurrentPositionToStartPath(Vector3Int currentPositionInPath)
+    public void RemoveFromDeletedTilePositions(Vector3Int tilePosition)
     {
-        pathIsStarted = true;
-        this.currentPositionInPath = currentPositionInPath;
-        ContinueDiggingPath();
+        DeletedTilePositions.Remove(tilePosition);
     }
 
     private Vector3Int GetMostRightAndDownTilePosition()
@@ -129,27 +130,16 @@ public class InfiniteTilePathDigger : MonoBehaviour
     private void LateUpdate()
     {
         Vector3Int currentPlayerPosition = Vector3Int.FloorToInt(playerPosition.position);
-        if (currentPlayerPosition.x > lastPlayerPosition.x +playerXPositionDifferenceBeforeUpdate && pathIsStarted)
+        if (currentPlayerPosition.x > lastPlayerPosition.x + playerXPositionDifferenceBeforeUpdate && pathIsStarted)
         {
-            DeleteDeletedTilePositionsOutsideVisibleSpace();
             ContinueDiggingPath();
             lastPlayerPosition = currentPlayerPosition;
         }
     }
 
-    private void DeleteDeletedTilePositionsOutsideVisibleSpace()
-    {
-        foreach(Vector3Int tilePosition in DeletedTilePositions.ToList())
-        {
-            if (!myBlockGenerator.TilePositions.Contains(tilePosition))
-            {
-                DeletedTilePositions.Remove(tilePosition);
-            }
-        }
-    }
-
     private void ContinueDiggingPath()
     {
+        tilePositionsInFrontOfDigger = GetTilePositionsInFrontOfDigger();
         bool succeeded = true;
         while (succeeded && IsDistantToBorders())
         {
@@ -157,9 +147,17 @@ public class InfiniteTilePathDigger : MonoBehaviour
         }
     }
 
+    private Vector3Int[] GetTilePositionsInFrontOfDigger()
+    {
+        Vector3Int[] tilePositionsInFrontOfDigger = myBlockGenerator.TilePositions
+            .Where((pos) => pos.x > (currentPositionInPath.x - 2))
+                .ToArray();
+        return tilePositionsInFrontOfDigger;
+    }
+
     private bool IsDistantToBorders()
     {
-        return myBlockGenerator.TilePositions.Any(pos => pos.x > currentPositionInPath.x);
+        return tilePositionsInFrontOfDigger.Any(pos => pos.x > currentPositionInPath.x);
     }
 
     private bool TryDigNextBlockOfFourTiles()
@@ -198,7 +196,6 @@ public class InfiniteTilePathDigger : MonoBehaviour
         {
             maxRandomValue += diggingDirectionsProbabilityPairs[direction];
         }
-
         return maxRandomValue;
     }
 
@@ -213,7 +210,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
         List<Vector3Int> allowedDirections = diggingDirections.ToList();
         foreach (Vector3Int diggingDirection in allowedDirections.ToList())
         {
-            if (IsAllowedToDeleteTilesIn(diggingDirection))
+            if (!IsAllowedToDeleteTilesIn(diggingDirection))
             {
                 allowedDirections.Remove(diggingDirection);
             }
@@ -223,26 +220,29 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private bool IsAllowedToDeleteTilesIn(Vector3Int diggingDirection)
     {
-        return TilesToBeDeletedContainBorderPositions(diggingDirection)
-                        || TilesToBeDeletedExceedRandomMaxHeight(diggingDirection)
-                        || TilesToBeDeletedAreAlreadyDeleted(diggingDirection);
+        tilesToBeDeleted = GetTilesToBeDeleted(diggingDirection);
+        bool isAllowed = !TilesToBeDeletedContainBorderPositions()
+                        && !TilesToBeDeletedAreAlreadyDeleted()
+                        && !TilesToBeDeletedExceedRandomMaxHeight(diggingDirection);
+        return isAllowed;
     }
 
-    private bool TilesToBeDeletedAreAlreadyDeleted(Vector3Int diggingDirection)
+    private bool TilesToBeDeletedAreAlreadyDeleted()
     {
-        return GetTilesToBeDeleted(diggingDirection).Count((pos) => DeletedTilePositions.Contains(pos)) == 4;
+        bool answer = tilesToBeDeleted.Count((pos) => DeletedTilePositions.Contains(pos)) == 4;
+        return answer;
     }
 
-    private bool TilesToBeDeletedContainBorderPositions(Vector3Int diggingDirection)
+    private bool TilesToBeDeletedContainBorderPositions()
     {
-        bool answer = GetTilesToBeDeleted(diggingDirection).Any(pos => myBlockGenerator.IsBorderTopTile(pos) || myBlockGenerator.IsBorderBottomTile(pos) || !myBlockGenerator.TilePositions.Contains(pos));
+        bool answer = tilesToBeDeleted.Any(pos => !tilePositionsInFrontOfDigger.Contains(pos) || myBlockGenerator.IsBorderTopTile(pos) || myBlockGenerator.IsBorderBottomTile(pos));
         return answer;
     }
 
     private bool TilesToBeDeletedExceedRandomMaxHeight(Vector3Int diggingDirection)
     {
         if (diggingDirection.y == 0) { return false; }
-        IEnumerable<Vector3Int> toBeDeleted = GetTilesToBeDeleted(diggingDirection);
+        IEnumerable<Vector3Int> toBeDeleted = tilesToBeDeleted;
         IEnumerable<Vector3Int> deletedTilePositionsAtDiggingPosition = DeletedTilePositions.Where(pos => pos.x == currentPositionInPath.x + diggingDirection.x);
         int maxCreatedHeightAtDiggingPosition = toBeDeleted.Concat(deletedTilePositionsAtDiggingPosition).Max(pos => pos.y);
         int minCreatedHeightAtDiggingPosition = toBeDeleted.Concat(deletedTilePositionsAtDiggingPosition).Min(pos => pos.y);
