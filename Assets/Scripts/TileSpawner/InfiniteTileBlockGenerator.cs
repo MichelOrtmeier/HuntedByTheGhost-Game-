@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
 [RequireComponent(typeof(Tilemap))]
@@ -12,6 +14,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     [SerializeField] RuleTile ruleTile;
     [SerializeField] int bufferCameraEdgeTiles = 2;
     [SerializeField] int minBorderSizeForDiggersAndBursters;
+    [SerializeField] float playerXPositionDifferenceBeforeUpdate = 1f;
 
     // References
     Tilemap myTilemap;
@@ -51,7 +54,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private void Update()
     {
-        if(roundedPlayerPositon.x < GetRoundedPlayerPosition().x || roundedPlayerPositon.x > GetRoundedPlayerPosition().x)
+        if(roundedPlayerPositon.x + playerXPositionDifferenceBeforeUpdate < GetRoundedPlayerPosition().x)
         {
             UpdateTileBlock();
         }

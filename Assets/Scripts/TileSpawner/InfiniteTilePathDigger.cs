@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -22,6 +23,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
         new Vector3Int(0,-1,0),
     };
     [SerializeField] int[] diggingDirectionsProbability = new int[6];
+    [SerializeField] float playerXPositionDifferenceBeforeUpdate = 1f;
     
 
     // References
@@ -127,7 +129,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
     private void LateUpdate()
     {
         Vector3Int currentPlayerPosition = Vector3Int.FloorToInt(playerPosition.position);
-        if (currentPlayerPosition.x > lastPlayerPosition.x && pathIsStarted)
+        if (currentPlayerPosition.x > lastPlayerPosition.x +playerXPositionDifferenceBeforeUpdate && pathIsStarted)
         {
             DeleteDeletedTilePositionsOutsideVisibleSpace();
             ContinueDiggingPath();
