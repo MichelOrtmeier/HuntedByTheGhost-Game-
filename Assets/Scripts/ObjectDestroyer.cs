@@ -6,12 +6,19 @@ using UnityEngine;
 public class ObjectDestroyer : MonoBehaviour
 {
     [SerializeField] GameObject followObject;
+    [SerializeField] GameObject enableOnDestroy;
+
+    private void Start()
+    {
+        enableOnDestroy.SetActive(false);
+    }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject == followObject)
         {
             Destroy(followObject);
+            enableOnDestroy.SetActive(true);
         }
     }
 }
