@@ -7,3 +7,7 @@
 # Don't ignore .cs files in Assets/Scripts
 !Assets/Scripts/**/*.cs
 !Assets/Scripts/**/*.meta
+!Assets/Scripts/**/*.asmdef
+!Assets/Tests/**/*.cs
+!Assets/Tests/**/*.meta
+!Assets/Tests/**/*.asmdef

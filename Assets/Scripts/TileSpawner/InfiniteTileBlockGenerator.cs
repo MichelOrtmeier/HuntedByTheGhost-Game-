@@ -11,7 +11,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     // SerializeFields
     [SerializeField] int height = 1;
     [SerializeField] Transform player;
-    [SerializeField] RuleTile ruleTile;
+    [SerializeField] TileBase tileVisualisation;
     [SerializeField] int bufferCameraEdgeTiles = 2;
     [SerializeField] int minBorderSizeForDiggersAndBursters;
     [SerializeField] float playerXPositionDifferenceBeforeUpdate = 1f;
@@ -103,7 +103,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     {
         if (!TileAtPositionExists(tilePosition))
         {
-            myTilemap.SetTile(tilePosition, ruleTile);
+            myTilemap.SetTile(tilePosition, tileVisualisation);
             TilePositions.Add(tilePosition);
         }
     }
@@ -144,7 +144,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     public override void ChangeTheme(ThemeSO newTheme)
     {
-        ruleTile = newTheme.RuleTile;
+        tileVisualisation = newTheme.TileVisualisation;
     }
 
     public bool IsBorderTopTile(Vector3Int tilePosition)
