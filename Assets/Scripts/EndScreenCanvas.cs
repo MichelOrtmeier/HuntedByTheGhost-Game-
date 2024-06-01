@@ -5,10 +5,6 @@ using UnityEngine.SceneManagement;
 
 public class EndScreenCanvas : MonoBehaviour
 {
-    private void OnEnable()
-    {
-        
-    }
 
     public void OnRestartButtonClick()
     {
