@@ -127,10 +127,10 @@ public class InfiniteTilePathDigger : MonoBehaviour
         DeletedTilePositions.Add(tilePosition);
     }
 
-    private void LateUpdate()
+    private void Update()
     {
         Vector3Int currentPlayerPosition = Vector3Int.FloorToInt(playerPosition.position);
-        if (currentPlayerPosition.x > lastPlayerPosition.x + playerXPositionDifferenceBeforeUpdate && pathIsStarted)
+        if (currentPlayerPosition.x == lastPlayerPosition.x + playerXPositionDifferenceBeforeUpdate && pathIsStarted)
         {
             ContinueDiggingPath();
             lastPlayerPosition = currentPlayerPosition;
