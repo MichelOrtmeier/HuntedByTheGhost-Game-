@@ -77,7 +77,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private void Update()
     {
-        if (roundedPlayerPositon.x + playerXPositionDifferenceBeforeUpdate == GetRoundedPlayerPosition().x)
+        if (roundedPlayerPositon.x + playerXPositionDifferenceBeforeUpdate <= GetRoundedPlayerPosition().x)
         {
             UpdateTileBlock();
         }

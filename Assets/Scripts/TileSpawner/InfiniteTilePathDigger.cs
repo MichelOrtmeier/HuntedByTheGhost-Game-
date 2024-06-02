@@ -113,9 +113,9 @@ public class InfiniteTilePathDigger : MonoBehaviour
         }
     }
 
-    private void DeleteTilesInDirection(Vector3Int diggingDirection)
+    private void DeleteTilesToBeDeleted()
     {
-        foreach (Vector3Int tilePosition in GetTilesToBeDeleted(diggingDirection))
+        foreach (Vector3Int tilePosition in tilesToBeDeleted)
         {
             DeleteTile(tilePosition);
         }
@@ -130,7 +130,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
     private void Update()
     {
         Vector3Int currentPlayerPosition = Vector3Int.FloorToInt(playerPosition.position);
-        if (currentPlayerPosition.x == lastPlayerPosition.x + playerXPositionDifferenceBeforeUpdate && pathIsStarted)
+        if (currentPlayerPosition.x >= lastPlayerPosition.x + playerXPositionDifferenceBeforeUpdate && pathIsStarted)
         {
             ContinueDiggingPath();
             lastPlayerPosition = currentPlayerPosition;
@@ -201,7 +201,8 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private void DigBlockOfFourTilesIn(Vector3Int chosenDirection)
     {
-        DeleteTilesInDirection(chosenDirection);
+        tilesToBeDeleted = GetTilesToBeDeleted(chosenDirection);
+        DeleteTilesToBeDeleted();
         currentPositionInPath += chosenDirection;
     }
 
