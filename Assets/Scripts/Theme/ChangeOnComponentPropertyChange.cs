@@ -7,5 +7,5 @@ using UnityEngine;
 
 public abstract class ChangeOnComponentPropertyChange : MonoBehaviour
 {
-    public abstract void ChangeTheme(ComponentsPropertiesSO newTheme);
+    public abstract void ChangeTheme(ThemeSO newTheme);
 }

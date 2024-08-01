@@ -5,7 +5,7 @@ public class ChangeInfiniteTilePathDiggersProperties : ChangeOnComponentProperty
     [SerializeField] InfiniteTilePathDigger startDigger;
 
     GameObject pathDiggersGameObject;
-    ComponentsPropertiesSO newTheme;
+    ThemeSO newTheme;
     InfiniteTilePathDigger[] currentDiggers;
 
     private void Awake()
@@ -13,7 +13,7 @@ public class ChangeInfiniteTilePathDiggersProperties : ChangeOnComponentProperty
         pathDiggersGameObject = startDigger.gameObject;
     }
 
-    public override void ChangeTheme(ComponentsPropertiesSO newTheme)
+    public override void ChangeTheme(ThemeSO newTheme)
     {
         this.newTheme = newTheme;
         currentDiggers = pathDiggersGameObject.GetComponents<InfiniteTilePathDigger>();
