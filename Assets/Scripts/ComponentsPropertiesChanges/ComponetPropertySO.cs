@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 [CreateAssetMenu(order = 1, menuName = "Theme", fileName = "NewTheme")]
-public class ThemeSO : ScriptableObject
+public class ComponetPropertySO : ScriptableObject
 {
     [Header("Colors")]
     [SerializeField] Color backgroundColor;

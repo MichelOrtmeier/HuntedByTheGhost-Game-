@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 
-public class ChangeInfiniteTilePathDiggersOnThemeChange : ChangeOnThemeChange
+public class ChangeInfiniteTilePathDiggersProperties : ChangeOnComponentPropertyChange
 {
     [SerializeField] InfiniteTilePathDigger startDigger;
 
     GameObject pathDiggersGameObject;
-    ThemeSO newTheme;
+    ComponetPropertySO newTheme;
     InfiniteTilePathDigger[] currentDiggers;
 
     private void Awake()
@@ -13,7 +13,7 @@ public class ChangeInfiniteTilePathDiggersOnThemeChange : ChangeOnThemeChange
         pathDiggersGameObject = startDigger.gameObject;
     }
 
-    public override void ChangeTheme(ThemeSO newTheme)
+    public override void ChangeTheme(ComponetPropertySO newTheme)
     {
         this.newTheme = newTheme;
         currentDiggers = pathDiggersGameObject.GetComponents<InfiniteTilePathDigger>();

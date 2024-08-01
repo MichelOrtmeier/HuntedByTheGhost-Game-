@@ -145,7 +145,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
         {
             succeeded = TryDigNextBlockOfFourTiles();
         }
-    }
+     }
 
     private Vector3Int[] GetTilePositionsInFrontOfDigger()
     {
@@ -157,7 +157,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private bool IsDistantToBorders()
     {
-        return tilePositionsInFrontOfDigger.Any(pos => pos.x > currentPositionInPath.x);
+        return tilePositionsInFrontOfDigger.Any(pos => pos.x > currentPositionInPath.x+1);
     }
 
     private bool TryDigNextBlockOfFourTiles()
@@ -231,12 +231,14 @@ public class InfiniteTilePathDigger : MonoBehaviour
     private bool TilesToBeDeletedAreAlreadyDeleted()
     {
         bool answer = tilesToBeDeleted.Count((pos) => DeletedTilePositions.Contains(pos)) == 4;
+        System.Diagnostics.Debug.WriteLine("AreAlreadyDeleted");
         return answer;
     }
 
     private bool TilesToBeDeletedContainBorderPositions()
     {
         bool answer = tilesToBeDeleted.Any(pos => !tilePositionsInFrontOfDigger.Contains(pos) || myBlockGenerator.IsBorderTopTile(pos) || myBlockGenerator.IsBorderBottomTile(pos));
+        System.Diagnostics.Debug.WriteLine("ContainBorderPositions");
         return answer;
     }
 
@@ -249,6 +251,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
         int minCreatedHeightAtDiggingPosition = toBeDeleted.Concat(deletedTilePositionsAtDiggingPosition).Min(pos => pos.y);
         int heightDifference = maxCreatedHeightAtDiggingPosition - minCreatedHeightAtDiggingPosition;
         bool exceedMaxHeight = heightDifference > GetRandomMaxHeightDifference();
+        System.Diagnostics.Debug.WriteLine("ExceedRandomMaxHeight");
         return exceedMaxHeight;
     }
 
@@ -264,7 +267,12 @@ public class InfiniteTilePathDigger : MonoBehaviour
             currentPositionInPath + diggingDirection,
             currentPositionInPath + diggingDirection + new Vector3Int(-1, 0, 0),
             currentPositionInPath + diggingDirection + new Vector3Int(0, 1, 0),
-            currentPositionInPath + diggingDirection + new Vector3Int(-1, 1, 0)
+            currentPositionInPath + diggingDirection + new Vector3Int(-1, 1, 0),
+            //currentPositionInPath + diggingDirection + new Vector3Int(-2, 0, 0),
+            //currentPositionInPath + diggingDirection + new Vector3Int(-2, 1, 0),
+            //currentPositionInPath + diggingDirection + new Vector3Int(0, 2, 0),
+            //currentPositionInPath + diggingDirection + new Vector3Int(-1, 2, 0),
+            //currentPositionInPath + diggingDirection + new Vector3Int(-2, 2, 0)
         };
         return tilesToBeDeleted;
     }

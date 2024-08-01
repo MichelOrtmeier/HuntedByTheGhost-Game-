@@ -1,17 +1,16 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class ThemeOnExceededXDistanceChanger : MonoBehaviour
+public class ComponentsPropertiesChangerOnExceededXDistance : MonoBehaviour
 {
     [SerializeField] Transform player;
-    [SerializeField] ThemeSO[] themes;
+    [SerializeField] ComponetPropertySO[] themes;
     [SerializeField] int startThemeIndex = 0;
     [SerializeField] int xDistanceExceededByPlayerBetweenKeySpawns = 50;
     [SerializeField] int xDistanceVariation = 10;
 
-    ThemeSO currentTheme;
+    ComponetPropertySO currentTheme;
     bool isFirstThemeChange = true;
     Vector3 lastPlayerPosition;
     int nextXDistance;
@@ -61,15 +60,15 @@ public class ThemeOnExceededXDistanceChanger : MonoBehaviour
 
     private void ChangeAllChangeOnThemeChangeObjects()
     {
-        foreach (ChangeOnThemeChange themeObject in FindObjectsOfType<ChangeOnThemeChange>())
+        foreach (ChangeOnComponentPropertyChange themeObject in FindObjectsOfType<ChangeOnComponentPropertyChange>())
         {
             themeObject.ChangeTheme(currentTheme);
         }
     }
 
-    private ThemeSO GetNextTheme()
+    private ComponetPropertySO GetNextTheme()
     {
-        ThemeSO nextTheme = currentTheme;
+        ComponetPropertySO nextTheme = currentTheme;
         if(themes.Length > 1)
         {
             do
