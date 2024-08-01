@@ -17,7 +17,6 @@ public class ObjectFollower : MonoBehaviour
         OnUserChangedVelocityInInputField();
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (followObject != null)
@@ -29,6 +28,10 @@ public class ObjectFollower : MonoBehaviour
 
     public void OnUserChangedVelocityInInputField()
     {
-        defaultVelocity = float.Parse(velocityInput.text);
+        if(!float.TryParse(velocityInput.text, out float value))
+        {
+            value = defaultVelocity;
+        }
+        defaultVelocity = value;
     }
 }
