@@ -12,7 +12,7 @@ public class ChangeColorThemeTransitions : ChangeOnComponentPropertyChange
     [SerializeField] CameraColorChanger cameraChanger;
     [SerializeField] TilemapColorChanger groundColorChanger;
 
-    public override void ChangeTheme(ComponetPropertySO newTheme)
+    public override void ChangeTheme(ComponentsPropertiesSO newTheme)
     {
         cameraChanger.ChangeColor(newTheme.BackgroundColor, newTheme.ColorTransitionSpeed);
         groundColorChanger.ChangeColor(newTheme.GroundTilemapColor, newTheme.ColorTransitionSpeed);

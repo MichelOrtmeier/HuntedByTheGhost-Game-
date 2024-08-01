@@ -182,7 +182,7 @@ public class InfiniteTileBlockGenerator : ChangeOnComponentPropertyChange
         return tilePosition.x < mostLeftTileInBlockXPosition;
     }
 
-    public override void ChangeTheme(ComponetPropertySO newTheme)
+    public override void ChangeTheme(ComponentsPropertiesSO newTheme)
     {
         tileVisualisation = newTheme.TileVisualisation;
     }

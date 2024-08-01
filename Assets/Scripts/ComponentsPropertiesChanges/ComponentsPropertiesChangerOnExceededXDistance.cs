@@ -5,12 +5,12 @@ using UnityEngine.Tilemaps;
 public class ComponentsPropertiesChangerOnExceededXDistance : MonoBehaviour
 {
     [SerializeField] Transform player;
-    [SerializeField] ComponetPropertySO[] themes;
+    [SerializeField] ComponentsPropertiesSO[] themes;
     [SerializeField] int startThemeIndex = 0;
     [SerializeField] int xDistanceExceededByPlayerBetweenKeySpawns = 50;
     [SerializeField] int xDistanceVariation = 10;
 
-    ComponetPropertySO currentTheme;
+    ComponentsPropertiesSO currentTheme;
     bool isFirstThemeChange = true;
     Vector3 lastPlayerPosition;
     int nextXDistance;
@@ -66,9 +66,9 @@ public class ComponentsPropertiesChangerOnExceededXDistance : MonoBehaviour
         }
     }
 
-    private ComponetPropertySO GetNextTheme()
+    private ComponentsPropertiesSO GetNextTheme()
     {
-        ComponetPropertySO nextTheme = currentTheme;
+        ComponentsPropertiesSO nextTheme = currentTheme;
         if(themes.Length > 1)
         {
             do

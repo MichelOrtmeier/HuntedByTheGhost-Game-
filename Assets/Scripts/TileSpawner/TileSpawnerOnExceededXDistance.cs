@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
-public class TileSpawnerExceededXDistance : MonoBehaviour
+public class TileSpawnerOnExceededXDistance : MonoBehaviour
 {
     [SerializeField] Transform player;
     [SerializeField] int xDistanceExceededByPlayerBetweenKeySpawns = 50;
@@ -14,28 +14,27 @@ public class TileSpawnerExceededXDistance : MonoBehaviour
     [SerializeField] TileBase tile;
 
     Vector3 lastPlayerPosition;
-    int nextXDistance;
-    Tilemap myTilemapToSpawnTilesOn;
+    int xDistanceBeforeNextSpawn;
+    Tilemap tilemapToSpawnOn;
     List<Vector3Int> tileSpawnPositions = new List<Vector3Int>();
     InfiniteTilePathDigger[] pathDiggers;
 
     void Start()
     {
         lastPlayerPosition = player.position;
-        nextXDistance = GetNextXDistance();
-        myTilemapToSpawnTilesOn = GetComponent<Tilemap>();
+        xDistanceBeforeNextSpawn = GetRandomXDistanceBeforeNextSpawn();
+        tilemapToSpawnOn = GetComponent<Tilemap>();
         pathDiggers = FindObjectsOfType<InfiniteTilePathDigger>();
     }
 
-    private int GetNextXDistance()
+    private int GetRandomXDistanceBeforeNextSpawn()
     {
         return Random.Range(xDistanceExceededByPlayerBetweenKeySpawns-xDistanceVariation, xDistanceExceededByPlayerBetweenKeySpawns + xDistanceVariation);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if(player.position.x - lastPlayerPosition.x > nextXDistance)
+        if(player.position.x - lastPlayerPosition.x > xDistanceBeforeNextSpawn)
         {
             SpawnNextTile();
         }
@@ -43,13 +42,13 @@ public class TileSpawnerExceededXDistance : MonoBehaviour
 
     private void SpawnNextTile()
     {
-        Vector3Int nextTilePosition = GetNexTileSpawnPosition();
-        myTilemapToSpawnTilesOn.SetTile(GetNexTileSpawnPosition(), tile);
+        Vector3Int nextTilePosition = GetNextTileSpawnPosition();
+        tilemapToSpawnOn.SetTile(GetNextTileSpawnPosition(), tile);
         tileSpawnPositions.Add(nextTilePosition);
         lastPlayerPosition = player.position;
     }
 
-    private Vector3Int GetNexTileSpawnPosition()
+    private Vector3Int GetNextTileSpawnPosition()
     {
         Vector3Int[] deletedTilePositions = GetDeletedTilePositions();
         return deletedTilePositions.OrderByDescending(pos => pos.x).ThenByDescending(pos => pos.y).First();
@@ -77,7 +76,7 @@ public class TileSpawnerExceededXDistance : MonoBehaviour
     {
         foreach (Vector3Int tilePosition in tileSpawnPositions)
         {
-            myTilemapToSpawnTilesOn.SetTile(tilePosition, null);
+            tilemapToSpawnOn.SetTile(tilePosition, null);
         }
     }
 }
