@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public abstract class ChangeOnComponentPropertyChange : MonoBehaviour
+public abstract class ChangeOnThemeChange : MonoBehaviour
 {
-    public abstract void ChangeTheme(ComponentsPropertiesSO newTheme);
+    public abstract void ChangeTheme(ThemeSO newTheme);
 }

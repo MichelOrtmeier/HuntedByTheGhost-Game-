@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class ChangeColorThemeTransitions : ChangeOnComponentPropertyChange
+public class ChangeColorThemeTransitions : ChangeOnThemeChange
 {
     [SerializeField] CameraColorChanger cameraChanger;
     [SerializeField] TilemapColorChanger groundColorChanger;
 
-    public override void ChangeTheme(ComponentsPropertiesSO newTheme)
+    public override void ChangeTheme(ThemeSO newTheme)
     {
         cameraChanger.ChangeColor(newTheme.BackgroundColor, newTheme.ColorTransitionSpeed);
         groundColorChanger.ChangeColor(newTheme.GroundTilemapColor, newTheme.ColorTransitionSpeed);

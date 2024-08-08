@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
 [RequireComponent(typeof(Tilemap))]
-public class InfiniteTileBlockGenerator : ChangeOnComponentPropertyChange
+public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 {
     // SerializeFields
     [SerializeField] int height = 1;
@@ -182,7 +182,7 @@ public class InfiniteTileBlockGenerator : ChangeOnComponentPropertyChange
         return tilePosition.x < mostLeftTileInBlockXPosition;
     }
 
-    public override void ChangeTheme(ComponentsPropertiesSO newTheme)
+    public override void ChangeTheme(ThemeSO newTheme)
     {
         tileVisualisation = newTheme.TileVisualisation;
     }
