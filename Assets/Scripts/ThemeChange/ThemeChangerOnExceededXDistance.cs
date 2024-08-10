@@ -4,7 +4,7 @@ using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class ThemeOnExceededXDistanceChanger : ExecutorOnExceededXDistance
+public class ThemeChangerOnExceededXDistance : ExecutorOnExceededXDistance
 {
     [SerializeField] ThemeSO[] themes;
     [SerializeField] int startThemeIndex = 0;
