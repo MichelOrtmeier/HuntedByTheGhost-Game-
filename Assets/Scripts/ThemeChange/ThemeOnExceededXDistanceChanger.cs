@@ -1,37 +1,22 @@
 ﻿
 using System.Collections.Generic;
+using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class ThemeOnExceededXDistanceChanger : MonoBehaviour
+public class ThemeOnExceededXDistanceChanger : ExecutorOnExceededXDistance
 {
-    [SerializeField] Transform player;
     [SerializeField] ThemeSO[] themes;
     [SerializeField] int startThemeIndex = 0;
-    [SerializeField] int xDistanceExceededByPlayerBetweenKeySpawns = 50;
-    [SerializeField] int xDistanceVariation = 10;
 
     ThemeSO currentTheme;
     bool isFirstThemeChange = true;
-    Vector3 lastPlayerPosition;
-    int nextXDistance;
 
-    private void Start()
+    protected override void Start()
     {
         SelectFirstCurrentTheme();
         ChangeAllChangeOnThemeChangeObjects();
-        ResetNextXDistanceVariables();
-    }
-
-    private void ResetNextXDistanceVariables()
-    {
-        nextXDistance = GetNextXDistance();
-        lastPlayerPosition.x = player.position.x;
-    }
-
-    private int GetNextXDistance()
-    {
-        return Random.Range(xDistanceExceededByPlayerBetweenKeySpawns - xDistanceVariation, xDistanceExceededByPlayerBetweenKeySpawns + xDistanceVariation);
+        base.Start();
     }
 
     private void SelectFirstCurrentTheme()
@@ -43,13 +28,14 @@ public class ThemeOnExceededXDistanceChanger : MonoBehaviour
         }
     }
 
-    void Update()
+    protected override void Update()
     {
-        if (player.position.x - lastPlayerPosition.x > nextXDistance)
-        {
-            ChangeTheme();
-            ResetNextXDistanceVariables();
-        }
+        base.Update();
+    }
+
+    protected override void OnXDistanceIsExceeded()
+    {
+        ChangeTheme();
     }
 
     private void ChangeTheme()
