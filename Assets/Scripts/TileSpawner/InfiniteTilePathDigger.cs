@@ -41,12 +41,14 @@ public class InfiniteTilePathDigger : MonoBehaviour
     bool pathIsStarted;
     Vector3Int[] tilesToBeDeleted;
     Vector3Int[] tilePositionsInFrontOfDigger;
+    int maxXValueInDiggingDirections;
 
     private void Awake()
     {
         myTilemap = GetComponent<Tilemap>();
         myBlockGenerator = GetComponent<InfiniteTileBlockGenerator>();
         TryCreateDiggingDirectionsProbabilityPairs();
+        maxXValueInDiggingDirections = GetMaxXValueInDiggingDirections();
     }
 
     public void ChangeDiggingDirectionsProbabilityPairs(DiggingDirectionsProbabilityPairsSO settings)
@@ -54,6 +56,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
         this.diggingDirections = settings.DiggingDirections;
         this.diggingDirectionsProbability = settings.DiggingDirectionsProbability;
         TryCreateDiggingDirectionsProbabilityPairs();
+        maxXValueInDiggingDirections = GetMaxXValueInDiggingDirections();
     }
 
     private void TryCreateDiggingDirectionsProbabilityPairs()
@@ -81,6 +84,11 @@ public class InfiniteTilePathDigger : MonoBehaviour
     private bool DiggingDirectionProbabilityPairsAreNotCreatedProperly()
     {
         return diggingDirections.Length != diggingDirectionsProbability.Length || diggingDirectionsProbability.Contains(0);
+    }
+
+    private int GetMaxXValueInDiggingDirections()
+    {
+        return diggingDirectionsProbabilityPairs.Keys.Max(direction => direction.x);
     }
 
     public void DigHoleToStartPath()
@@ -141,7 +149,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
     {
         tilePositionsInFrontOfDigger = GetTilePositionsInFrontOfDigger();
         bool succeeded = true;
-        while (succeeded && IsDistantToBorders())
+        while (succeeded && DiggingForwardIsPossible())//is not able to dig forward when the edge of the generated Tile Block is reached -> influences digging behaviour
         {
             succeeded = TryDigNextBlockOfFourTiles();
         }
@@ -155,9 +163,9 @@ public class InfiniteTilePathDigger : MonoBehaviour
         return tilePositionsInFrontOfDigger;
     }
 
-    private bool IsDistantToBorders()
+    private bool DiggingForwardIsPossible()
     {
-        return tilePositionsInFrontOfDigger.Any(pos => pos.x > currentPositionInPath.x);
+        return tilePositionsInFrontOfDigger.Any(pos => pos.x == currentPositionInPath.x + maxXValueInDiggingDirections);
     }
 
     private bool TryDigNextBlockOfFourTiles()

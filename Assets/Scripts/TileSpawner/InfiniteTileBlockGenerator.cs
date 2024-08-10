@@ -14,7 +14,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     [SerializeField] Transform player;
     [SerializeField] TileBase tileVisualisation;
     [SerializeField] int bufferCameraEdgeTiles = 2;
-    [SerializeField] int minBorderSizeForDiggersAndBursters;
+    [SerializeField] int minHorizontalBorderSizeForDiggersAndBursters;
     [SerializeField] float playerXPositionDifferenceBeforeUpdate = 1f;
 
     // References
@@ -189,7 +189,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     public bool IsBorderTopTile(Vector3Int tilePosition)
     {
-        if (tilePosition.y >= highestTilePosition - minBorderSizeForDiggersAndBursters)
+        if (tilePosition.y >= highestTilePosition - minHorizontalBorderSizeForDiggersAndBursters)
         {
             return true;
         }
@@ -198,7 +198,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     public bool IsBorderBottomTile(Vector3Int tilePosition)
     {
-        if (tilePosition.y <= lowestTilePosition + minBorderSizeForDiggersAndBursters)
+        if (tilePosition.y <= lowestTilePosition + minHorizontalBorderSizeForDiggersAndBursters)
         {
             return true;
         }
