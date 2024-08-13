@@ -50,7 +50,7 @@ public class TileSpawnerOnExceededXDistance : ExecutorOnExceededXDistance
         List<Vector3Int> deletedTilePositions = new List<Vector3Int>();
         foreach (InfiniteTilePathDigger pathDigger in pathDiggers)
         {
-            deletedTilePositions.Add(pathDigger.DeletedTilePositions.OrderByDescending(pos => pos.x).ThenByDescending(pos => pos.y).First());
+            deletedTilePositions.Add(pathDigger.EmptyTileFieldsInPathPositions.OrderByDescending(pos => pos.x).ThenByDescending(pos => pos.y).First());
         }
         return deletedTilePositions.ToArray();
     }

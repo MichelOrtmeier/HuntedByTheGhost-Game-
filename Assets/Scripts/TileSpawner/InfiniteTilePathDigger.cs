@@ -26,13 +26,12 @@ public class InfiniteTilePathDigger : MonoBehaviour
     [SerializeField] int[] diggingDirectionsProbability = new int[6];
     [SerializeField] float playerXPositionDifferenceBeforeUpdate = 1f;
     
-
     // References
     Tilemap myTilemap;
     InfiniteTileBlockGenerator myBlockGenerator;
 
     //Variables
-    public List<Vector3Int> DeletedTilePositions { get; private set; } = new List<Vector3Int>();
+    public List<Vector3Int> EmptyTileFieldsInPathPositions { get; private set; } = new List<Vector3Int>();
     public Vector3Int CurrentPositionInPath { get => currentPositionInPath; }
 
     Vector3Int currentPositionInPath;
@@ -101,12 +100,12 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     public void RemoveFromDeletedTilePositions(Vector3Int tilePosition)
     {
-        DeletedTilePositions.Remove(tilePosition);
+        EmptyTileFieldsInPathPositions.Remove(tilePosition);
     }
 
     private Vector3Int GetMostRightAndDownTilePosition()
     {
-        return DeletedTilePositions.OrderByDescending(pos => pos.x).ThenBy(pos => pos.y).First();
+        return EmptyTileFieldsInPathPositions.OrderByDescending(pos => pos.x).ThenBy(pos => pos.y).First();
     }
 
     private void DigHoleOfTiles(Vector3Int position, int width, int depth)
@@ -132,7 +131,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
     private void DeleteTile(Vector3Int tilePosition)
     {
         myTilemap.SetTile(tilePosition, null);
-        DeletedTilePositions.Add(tilePosition);
+        EmptyTileFieldsInPathPositions.Add(tilePosition);
     }
 
     private void Update()
@@ -238,7 +237,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private bool TilesToBeDeletedAreAlreadyDeleted()
     {
-        bool answer = tilesToBeDeleted.Count((pos) => DeletedTilePositions.Contains(pos)) == 4;
+        bool answer = tilesToBeDeleted.Count((pos) => EmptyTileFieldsInPathPositions.Contains(pos)) == 4;
         return answer;
     }
 
@@ -252,7 +251,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
     {
         if (diggingDirection.y == 0) { return false; }
         IEnumerable<Vector3Int> toBeDeleted = tilesToBeDeleted;
-        IEnumerable<Vector3Int> deletedTilePositionsAtDiggingPosition = DeletedTilePositions.Where(pos => pos.x == currentPositionInPath.x + diggingDirection.x);
+        IEnumerable<Vector3Int> deletedTilePositionsAtDiggingPosition = EmptyTileFieldsInPathPositions.Where(pos => pos.x == currentPositionInPath.x + diggingDirection.x);
         int maxCreatedHeightAtDiggingPosition = toBeDeleted.Concat(deletedTilePositionsAtDiggingPosition).Max(pos => pos.y);
         int minCreatedHeightAtDiggingPosition = toBeDeleted.Concat(deletedTilePositionsAtDiggingPosition).Min(pos => pos.y);
         int heightDifference = maxCreatedHeightAtDiggingPosition - minCreatedHeightAtDiggingPosition;
