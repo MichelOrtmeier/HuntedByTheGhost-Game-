@@ -16,18 +16,22 @@ public class VerticalTileChainSpawnerOnExceededXDistance : ExecutorOnExceededXDi
     [SerializeField] Tilemap tilemapToSpawnOn;
 
     InfiniteTilePathDigger[] tilePath;
-    Vector3Int nextPlayerSpawnPoint;
 
     protected override void Start()
     {
         if(tileBlock.TryGetComponent(out InfiniteTilePathDigger digger) == false)
         {
-            throw new ArgumentOutOfRangeException(
-                "Das Feld tileBlock des VerticalTileChainSpawner benötigt einen " +
-                "InfiniteTileBlockGenerator mit mindestens einem InfiniteTilePathDigger");
+            ThrowExceptionCausedByMissingDiggers();
         }
         tilePath = tileBlock.gameObject.GetComponents<InfiniteTilePathDigger>();
         base.Start();
+    }
+
+    private void ThrowExceptionCausedByMissingDiggers()
+    {
+            throw new ArgumentOutOfRangeException(
+        "Das Feld tileBlock des VerticalTileChainSpawner benötigt einen " +
+        "InfiniteTileBlockGenerator mit mindestens einem InfiniteTilePathDigger");
     }
 
     protected override void Update()
@@ -42,52 +46,23 @@ public class VerticalTileChainSpawnerOnExceededXDistance : ExecutorOnExceededXDi
 
     private void SpawnVerticalTileChain()
     {
-        Vector3Int tileChainTopPosition = GetTileChainTopPosition();
-        int height = GetRandomChainHeightAtPosition(tileChainTopPosition);
-        int highestPositionOutOfChain = tileChainTopPosition.y - height;
-        for (int y = tileChainTopPosition.y; y > highestPositionOutOfChain; y--)
+        Vector3Int[] emptyTileFieldsInPathPositions = tilePath.GetEmptyTileFieldsInPathPositions();
+        int columnXPosition = emptyTileFieldsInPathPositions.Max(pos => pos.x) - 2;
+        ColumnOfPathDugThroughTileBlock pathColumn = new ColumnOfPathDugThroughTileBlock(emptyTileFieldsInPathPositions, columnXPosition);
+        int highestFieldHeightInChain = pathColumn.GetHighestFieldHeight();
+        int height = GetRandomHeightOfChainInColumn(pathColumn);
+        int highestPositionOutOfChain = highestFieldHeightInChain - height;
+        for (int y = highestFieldHeightInChain; y > highestPositionOutOfChain; y--)
         {
-            Vector3Int spawnPosition = new Vector3Int(tileChainTopPosition.x, y);
+            Vector3Int spawnPosition = new Vector3Int(highestFieldHeightInChain.x, y);
             tilemapToSpawnOn.SetTile(spawnPosition, tileToSpawn);
         }
     }
 
 
-    private Vector3Int GetTileChainTopPosition()
+    private int GetRandomHeightOfChainInColumn(ColumnOfPathDugThroughTileBlock pathColumn)
     {
-        int maxXPosition = tilePath.GetEmptyTileFieldsInPathPositions().Max(pos => pos.x);
-        return tilePath.GetEmptyTileFieldsInPathPositions()
-            .Where(pos => pos.x < maxXPosition-2)
-            .OrderByDescending(pos => pos.x)
-            .ThenByDescending(pos => pos.y)
-            .First();
-    }
-
-    private int GetRandomChainHeightAtPosition(Vector3Int tileChainTopPosition)
-    {
-        return UnityEngine.Random.Range(minTileChainHeight, GetMaxChainHeightAtPosition(tileChainTopPosition)+1);
-    }
-
-    private int GetMaxChainHeightAtPosition(Vector3Int tileChainTopPosition)
-    {
-         int[] emptyTileFieldsAtXOfTileChainTop = tilePath.GetEmptyTileFieldsInPathPositions()
-            .Where(pos => pos.x == tileChainTopPosition.x)
-            .Where(pos => pos.y != tileChainTopPosition.y)
-            .OrderByDescending(pos => pos.y)
-            .Select(pos => pos.y)
-            .ToArray();
-        int lastHeight = tileChainTopPosition.y;
-        int maxChainHeight = 1;
-        foreach(int currentHeight in emptyTileFieldsAtXOfTileChainTop)
-        {
-            if(lastHeight-currentHeight > 1)
-            {
-                break;
-            }
-            lastHeight = currentHeight;
-            maxChainHeight++;
-        }
-        return maxChainHeight;
+        return UnityEngine.Random.Range(minTileChainHeight, pathColumn.GetHighestPathHeight());
     }
     //TODO: Add method to delete unnecessary chains
 }
