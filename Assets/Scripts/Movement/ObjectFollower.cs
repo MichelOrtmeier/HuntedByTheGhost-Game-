@@ -6,32 +6,45 @@ using UnityEngine.UI;
 
 public class ObjectFollower : MonoBehaviour
 {
-    [SerializeField] GameObject followObject;
+    [SerializeField] GameObject objectToFollow;
     [SerializeField] float defaultVelocity=0.1f;
     [SerializeField] TMP_InputField velocityInput;
+    [SerializeField] bool increaseVelocityWhenBeingCloseToObjectToFollow;
+    [SerializeField] float increasedVelocity = 0.5f;
+    [SerializeField] float maxDistanceToObjectToFollowAtIncreasedVelocity = 5f;
 
     Vector3 followObjectPosition;
-
-    private void Start()
-    {
-        OnUserChangedVelocityInInputField();
-    }
+    float velocity;
 
     void Update()
     {
-        if (followObject != null)
-        {
-            followObjectPosition = followObject.transform.position;
-        }
-        transform.position = Vector3.MoveTowards(transform.position, followObjectPosition, defaultVelocity * Time.deltaTime);
+        UpdateVelocity();
+        FollowObject();
     }
 
-    public void OnUserChangedVelocityInInputField()
+    private void UpdateVelocity()
     {
-        if(!float.TryParse(velocityInput.text, out float value))
+        if (increaseVelocityWhenBeingCloseToObjectToFollow && IsCloseToObjectToFollow())
         {
-            value = defaultVelocity;
+            velocity = increasedVelocity;
         }
-        defaultVelocity = value;
+        else
+        {
+            velocity = defaultVelocity;
+        }
+    }
+
+    private bool IsCloseToObjectToFollow()
+    {
+        return Vector3.Distance(transform.position, objectToFollow.transform.position) < maxDistanceToObjectToFollowAtIncreasedVelocity;
+    }
+
+    private void FollowObject()
+    {
+        if (objectToFollow != null)
+        {
+            followObjectPosition = objectToFollow.transform.position;
+        }
+        transform.position = Vector3.MoveTowards(transform.position, followObjectPosition, velocity * Time.deltaTime);
     }
 }
