@@ -18,26 +18,30 @@ public class ColumnOfPathDugThroughTileBlock
             .Select(pos => pos.y)
             .OrderByDescending(y => y)
             .ToArray();
+        if(pathFieldsHeightsOrderedByDescending.Length < 1)
+        {
+            throw new ArgumentOutOfRangeException("ColumnOfPathDugThroughTileBlock does not accept columns without fields of the path in it.");
+        }
     }
 
-    public int GetHighestFieldHeight()
+    public int GetMaxFieldHeight()
     {
         return pathFieldsHeightsOrderedByDescending.Max();
     }
 
     public int GetHighestPathHeight()
     {
-        int lastHeight = GetHighestFieldHeight();
-        int maxChainHeight = 1;
+        int lastFieldHeight = GetMaxFieldHeight();
+        int pathHeight = 0;
         foreach (int currentHeight in pathFieldsHeightsOrderedByDescending)
         {
-            if (lastHeight - currentHeight > 1)
+            if (lastFieldHeight - currentHeight > 1)
             {
                 break;
             }
-            lastHeight = currentHeight;
-            maxChainHeight++;
+            lastFieldHeight = currentHeight;
+            pathHeight++;
         }
-        return maxChainHeight;
+        return pathHeight;
     }
 }

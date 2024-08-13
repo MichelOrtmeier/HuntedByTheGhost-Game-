@@ -11,3 +11,6 @@
 !Assets/Tests/**/*.cs
 !Assets/Tests/**/*.meta
 !Assets/Tests/**/*.asmdef
+!Assets/EditModeTests/**/*.cs
+!Assets/EditModeTests/**/*.meta
+!Assets/EditModeTests/**/*.asmdef

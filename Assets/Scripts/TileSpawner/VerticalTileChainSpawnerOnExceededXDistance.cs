@@ -49,12 +49,12 @@ public class VerticalTileChainSpawnerOnExceededXDistance : ExecutorOnExceededXDi
         Vector3Int[] emptyTileFieldsInPathPositions = tilePath.GetEmptyTileFieldsInPathPositions();
         int columnXPosition = emptyTileFieldsInPathPositions.Max(pos => pos.x) - 2;
         ColumnOfPathDugThroughTileBlock pathColumn = new ColumnOfPathDugThroughTileBlock(emptyTileFieldsInPathPositions, columnXPosition);
-        int highestFieldHeightInChain = pathColumn.GetHighestFieldHeight();
+        int highestFieldHeightInChain = pathColumn.GetMaxFieldHeight();
         int height = GetRandomHeightOfChainInColumn(pathColumn);
         int highestPositionOutOfChain = highestFieldHeightInChain - height;
         for (int y = highestFieldHeightInChain; y > highestPositionOutOfChain; y--)
         {
-            Vector3Int spawnPosition = new Vector3Int(highestFieldHeightInChain.x, y);
+            Vector3Int spawnPosition = new Vector3Int(columnXPosition, y);
             tilemapToSpawnOn.SetTile(spawnPosition, tileToSpawn);
         }
     }
