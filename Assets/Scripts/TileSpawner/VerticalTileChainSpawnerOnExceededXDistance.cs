@@ -1,11 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Tilemaps;
 using System;
 using System.Linq;
-using UnityEngine.UIElements;
-using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class VerticalTileChainSpawnerOnExceededXDistance : ExecutorOnExceededXDistance
 {
@@ -16,6 +12,7 @@ public class VerticalTileChainSpawnerOnExceededXDistance : ExecutorOnExceededXDi
     [SerializeField] Tilemap tilemapToSpawnOn;
 
     InfiniteTilePathDigger[] tilePath;
+
 
     protected override void Start()
     {
@@ -47,22 +44,29 @@ public class VerticalTileChainSpawnerOnExceededXDistance : ExecutorOnExceededXDi
     private void SpawnVerticalTileChain()
     {
         Vector3Int[] emptyTileFieldsInPathPositions = tilePath.GetEmptyTileFieldsInPathPositions();
-        int columnXPosition = emptyTileFieldsInPathPositions.Max(pos => pos.x) - 2;
+        int columnXPosition = emptyTileFieldsInPathPositions.Max(pos => pos.x) - 3;
         ColumnOfPathDugThroughTileBlock pathColumn = new ColumnOfPathDugThroughTileBlock(emptyTileFieldsInPathPositions, columnXPosition);
         int highestFieldHeightInChain = pathColumn.GetMaxFieldHeight();
         int height = GetRandomHeightOfChainInColumn(pathColumn);
-        int highestPositionOutOfChain = highestFieldHeightInChain - height;
-        for (int y = highestFieldHeightInChain; y > highestPositionOutOfChain; y--)
+        int highestFieldHeightOutOfChain = highestFieldHeightInChain - height;
+        for (int y = highestFieldHeightInChain; y > highestFieldHeightOutOfChain; y--)
         {
             Vector3Int spawnPosition = new Vector3Int(columnXPosition, y);
             tilemapToSpawnOn.SetTile(spawnPosition, tileToSpawn);
         }
+        ClearTilesAroundTileChain(columnXPosition, height, highestFieldHeightOutOfChain);
+        //TODO: extract class VerticalTileChain
+        //TODO: fix bug: can remove borders
     }
 
+    private void ClearTilesAroundTileChain(int columnXPosition, int height, int highestFieldHeightOutOfChain)
+    {
+        tileBlock.gameObject.GetComponent<Tilemap>().SetTilesBlock(new BoundsInt(columnXPosition - 2, highestFieldHeightOutOfChain - 1, 0, 5, height + 1, 1)
+            , Enumerable.Repeat<TileBase>(null, 5 * (height + 1)).ToArray());
+    }
 
     private int GetRandomHeightOfChainInColumn(ColumnOfPathDugThroughTileBlock pathColumn)
     {
         return UnityEngine.Random.Range(minTileChainHeight, pathColumn.GetHighestPathHeight());
     }
-    //TODO: Add method to delete unnecessary chains
 }
