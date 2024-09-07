@@ -30,7 +30,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     int mostLeftTileInBlockXPosition;
     int rightestTileBlockXPosition;
     int lastBlockGenerationRightestXPosition;
-    int lastBlockGenerationMostLeftXPosition;
+    int lastMostLeftTileInBlockXPosition;
     int lowestTilePosition;
     int highestTilePosition;
 
@@ -55,11 +55,9 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
         roundedCameraSize = GetRoundedCameraSize();
         mostLeftTileInBlockXPosition = GetMostLeftTileInBlockXPosition();
         rightestTileBlockXPosition = GetRightestTileInBlockXPosition();
-        for (int x = mostLeftTileInBlockXPosition; x <= rightestTileBlockXPosition; x++)
-        {
-            SpawnTileRowOnYAxis(x);
-        }
-        lastBlockGenerationMostLeftXPosition = mostLeftTileInBlockXPosition;
+        lastBlockGenerationRightestXPosition = mostLeftTileInBlockXPosition;
+        AddTilesToTileBlockInsideCameraView();
+        lastMostLeftTileInBlockXPosition = mostLeftTileInBlockXPosition;
         lastBlockGenerationRightestXPosition = rightestTileBlockXPosition;
     }
 
@@ -91,7 +89,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
         rightestTileBlockXPosition = GetRightestTileInBlockXPosition();
         AddTilesToTileBlockInsideCameraView();
         DeleteTilesOutsideCameraView();
-        lastBlockGenerationMostLeftXPosition = mostLeftTileInBlockXPosition;
+        lastMostLeftTileInBlockXPosition = mostLeftTileInBlockXPosition;
         lastBlockGenerationRightestXPosition = rightestTileBlockXPosition;
     }
 
@@ -110,7 +108,11 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private void AddTilesToTileBlockInsideCameraView()
     {
-        for (int x = GetLastLeftXPositionToGenerateNewTilesOn(); x <= rightestTileBlockXPosition; x++)
+        int sizeX = rightestTileBlockXPosition - lastBlockGenerationRightestXPosition;
+        BoundsInt boundsOfNewTileBlock = new BoundsInt(lastBlockGenerationRightestXPosition+1, -height+1, 0, sizeX, height, 1);
+        TileBase[] tiles = Enumerable.Repeat<TileBase>(tileVisualisation, sizeX * (height)).ToArray();
+        myTilemap.SetTilesBlock(boundsOfNewTileBlock, tiles);
+        for (int x = lastBlockGenerationRightestXPosition+1; x <= rightestTileBlockXPosition; x++)
         {
             SpawnTileRowOnYAxis(x);
         }
@@ -118,9 +120,9 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private int GetLastLeftXPositionToGenerateNewTilesOn()
     {
-        if (lastBlockGenerationMostLeftXPosition > mostLeftTileInBlockXPosition)
+        if (lastMostLeftTileInBlockXPosition > mostLeftTileInBlockXPosition)
         {
-            return mostLeftTileInBlockXPosition;
+             return mostLeftTileInBlockXPosition;
         }
         else
         {
@@ -138,7 +140,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private void AddTileAt(Vector3Int tilePosition)
     {
-        myTilemap.SetTile(tilePosition, tileVisualisation);
+        //myTilemap.SetTile(tilePosition, tileVisualisation);
         TilePositions.Add(tilePosition);
     }
 
