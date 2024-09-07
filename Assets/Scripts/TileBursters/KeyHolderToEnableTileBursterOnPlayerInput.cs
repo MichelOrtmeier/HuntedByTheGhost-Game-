@@ -11,6 +11,7 @@ public class KeyHolderToEnableTileBursterOnPlayerInput : MonoBehaviour
     [SerializeField] int keys = 0;
     [SerializeField] TMP_Text numberOfKeysVisualisation;
     [SerializeField] Canvas keyCanvas;
+    [SerializeField] ParticleSystem keyIsCollectedVisualisation;
 
     private void Start()
     {
@@ -42,6 +43,7 @@ public class KeyHolderToEnableTileBursterOnPlayerInput : MonoBehaviour
         {
             keys++;
             ShowNumberOfKeys();
+            keyIsCollectedVisualisation.Play();
         }
     }
 
