@@ -34,6 +34,9 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     int lowestTilePosition;
     int highestTilePosition;
 
+    //Constants
+    public const int ZPositionOfTiles = 0;
+
     private void Awake()
     {
         myTilemap = GetComponent<Tilemap>();
@@ -88,6 +91,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
         mostLeftTileInBlockXPosition = GetMostLeftTileInBlockXPosition();
         rightestTileBlockXPosition = GetRightestTileInBlockXPosition();
         AddTilesToTileBlockInsideCameraView();
+        RegisterTilesGeneratedDuringCurrentUpdate();
         DeleteTilesOutsideCameraView();
         lastMostLeftTileInBlockXPosition = mostLeftTileInBlockXPosition;
         lastBlockGenerationRightestXPosition = rightestTileBlockXPosition;
@@ -108,25 +112,30 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private void AddTilesToTileBlockInsideCameraView()
     {
-        int sizeX = rightestTileBlockXPosition - lastBlockGenerationRightestXPosition;
-        BoundsInt boundsOfNewTileBlock = new BoundsInt(lastBlockGenerationRightestXPosition+1, -height+1, 0, sizeX, height, 1);
-        TileBase[] tiles = Enumerable.Repeat<TileBase>(tileVisualisation, sizeX * (height)).ToArray();
-        myTilemap.SetTilesBlock(boundsOfNewTileBlock, tiles);
-        for (int x = lastBlockGenerationRightestXPosition+1; x <= rightestTileBlockXPosition; x++)
-        {
-            SpawnTileRowOnYAxis(x);
-        }
+        BoundsInt boundsOfTileBlockToBeGenerated = GetBoundsOfTileBlockToBeGenerated();
+        int amountOfTilesToBeGenerated = boundsOfTileBlockToBeGenerated.size.x * boundsOfTileBlockToBeGenerated.size.y;
+        TileBase[] tiles = Enumerable.Repeat<TileBase>(tileVisualisation, amountOfTilesToBeGenerated).ToArray();
+        myTilemap.SetTilesBlock(boundsOfTileBlockToBeGenerated, tiles);
+        //TODO: create two methods (one for the beginning and one for the end) or another solution
     }
 
-    private int GetLastLeftXPositionToGenerateNewTilesOn()
+    private BoundsInt GetBoundsOfTileBlockToBeGenerated()
     {
-        if (lastMostLeftTileInBlockXPosition > mostLeftTileInBlockXPosition)
+        int xMin = lastBlockGenerationRightestXPosition + 1;
+        int yMin = -height + 1;
+        int zMin = ZPositionOfTiles;
+        int sizeX = rightestTileBlockXPosition - lastBlockGenerationRightestXPosition;
+        int sizeY = height;
+        int sizeZ = 1;
+        BoundsInt boundsOfNewTileBlock = new BoundsInt(xMin, yMin, zMin, sizeX, sizeY, sizeZ);
+        return boundsOfNewTileBlock;
+    }
+
+    private void RegisterTilesGeneratedDuringCurrentUpdate()
+    {
+        for (int x = lastBlockGenerationRightestXPosition + 1; x <= rightestTileBlockXPosition; x++)
         {
-             return mostLeftTileInBlockXPosition;
-        }
-        else
-        {
-            return lastBlockGenerationRightestXPosition + 1;
+            SpawnTileRowOnYAxis(x);
         }
     }
 
@@ -134,14 +143,8 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     {
         for (int y = 0; y > -height; y--)
         {
-            AddTileAt(new Vector3Int(x, y, 0));
+            TilePositions.Add(new Vector3Int(x, y, ZPositionOfTiles));
         }
-    }
-
-    private void AddTileAt(Vector3Int tilePosition)
-    {
-        //myTilemap.SetTile(tilePosition, tileVisualisation);
-        TilePositions.Add(tilePosition);
     }
 
     private bool TileAtPositionExists(Vector3Int tilePosition)
