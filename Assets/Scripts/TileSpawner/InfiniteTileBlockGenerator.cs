@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
 [RequireComponent(typeof(Tilemap))]
@@ -24,15 +21,13 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     // Properties
     public List<Vector3Int> TilePositions { get; private set; } = new List<Vector3Int>();
-
-    Vector3Int roundedPlayerPositon;
-    Vector3Int roundedCameraSize;
-    int mostLeftTileInBlockXPosition;
-    int rightestTileBlockXPosition;
     int lastBlockGenerationRightestXPosition;
     int lastMostLeftTileInBlockXPosition;
     int lowestTilePosition;
     int highestTilePosition;
+    BoundsInt boundsOfUpdatedTileBlock;
+    BoundsInt boundsOfLastUpdateTileBlock;
+    Vector3Int roundedPlayerPositionOnLastUpdateTileBlock;
 
     //Constants
     public const int ZPositionOfTiles = 0;
@@ -48,20 +43,10 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private void Start()
     {
-        GenerateFirstTileBlock();
+        lastBlockGenerationRightestXPosition = GetMostLeftTileInBlockXPosition();
+        boundsOfLastUpdateTileBlock = GetBoundsOfUpdatedTileBlock();
+        UpdateTileBlock();
         EnableInfiniteTileWayGenerators();
-    }
-
-    private void GenerateFirstTileBlock()
-    {
-        roundedPlayerPositon = GetRoundedPlayerPosition();
-        roundedCameraSize = GetRoundedCameraSize();
-        mostLeftTileInBlockXPosition = GetMostLeftTileInBlockXPosition();
-        rightestTileBlockXPosition = GetRightestTileInBlockXPosition();
-        lastBlockGenerationRightestXPosition = mostLeftTileInBlockXPosition;
-        AddTilesToTileBlockInsideCameraView();
-        lastMostLeftTileInBlockXPosition = mostLeftTileInBlockXPosition;
-        lastBlockGenerationRightestXPosition = rightestTileBlockXPosition;
     }
 
     private void EnableInfiniteTileWayGenerators()
@@ -78,23 +63,35 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private void Update()
     {
-        if (roundedPlayerPositon.x + playerXPositionDifferenceBeforeUpdate <= GetRoundedPlayerPosition().x)
+        if (roundedPlayerPositionOnLastUpdateTileBlock.x + playerXPositionDifferenceBeforeUpdate <= GetRoundedPlayerPosition().x)
         {
             UpdateTileBlock();
         }
     }
 
+
     private void UpdateTileBlock()
     {
-        roundedPlayerPositon = GetRoundedPlayerPosition();
-        roundedCameraSize = GetRoundedCameraSize();
-        mostLeftTileInBlockXPosition = GetMostLeftTileInBlockXPosition();
-        rightestTileBlockXPosition = GetRightestTileInBlockXPosition();
+        boundsOfUpdatedTileBlock = GetBoundsOfUpdatedTileBlock();
         AddTilesToTileBlockInsideCameraView();
         RegisterTilesGeneratedDuringCurrentUpdate();
         DeleteTilesOutsideCameraView();
-        lastMostLeftTileInBlockXPosition = mostLeftTileInBlockXPosition;
-        lastBlockGenerationRightestXPosition = rightestTileBlockXPosition;
+        lastMostLeftTileInBlockXPosition = GetMostLeftTileInBlockXPosition();
+        lastBlockGenerationRightestXPosition = GetRightestTileInBlockXPosition();
+        boundsOfLastUpdateTileBlock = boundsOfUpdatedTileBlock;
+        roundedPlayerPositionOnLastUpdateTileBlock = GetRoundedPlayerPosition();
+    }
+
+    private BoundsInt GetBoundsOfUpdatedTileBlock()
+    {
+        int xMin = GetMostLeftTileInBlockXPosition();
+        int yMin = -height + 1;
+        int zMin = ZPositionOfTiles;
+        int sizeX = GetRightestTileInBlockXPosition() - GetMostLeftTileInBlockXPosition();
+        int sizeY = height;
+        int sizeZ = 1;
+        BoundsInt boundsOfTileBlock = new BoundsInt(xMin, yMin, zMin, sizeX, sizeY, sizeZ);
+        return boundsOfTileBlock;
     }
 
     private Vector3Int GetRoundedPlayerPosition() => Vector3Int.FloorToInt(player.position);
@@ -106,9 +103,9 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
         return roundedCameraSize;
     }
 
-    private int GetMostLeftTileInBlockXPosition() => roundedPlayerPositon.x - roundedCameraSize.x - bufferCameraEdgeTiles;
+    private int GetMostLeftTileInBlockXPosition() => GetRoundedPlayerPosition().x - GetRoundedCameraSize().x - bufferCameraEdgeTiles;
 
-    private int GetRightestTileInBlockXPosition() => roundedPlayerPositon.x + roundedCameraSize.x + bufferCameraEdgeTiles;
+    private int GetRightestTileInBlockXPosition() => GetRoundedPlayerPosition().x + GetRoundedCameraSize().x + bufferCameraEdgeTiles;
 
     private void AddTilesToTileBlockInsideCameraView()
     {
@@ -116,7 +113,6 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
         int amountOfTilesToBeGenerated = boundsOfTileBlockToBeGenerated.size.x * boundsOfTileBlockToBeGenerated.size.y;
         TileBase[] tiles = Enumerable.Repeat<TileBase>(tileVisualisation, amountOfTilesToBeGenerated).ToArray();
         myTilemap.SetTilesBlock(boundsOfTileBlockToBeGenerated, tiles);
-        //TODO: create two methods (one for the beginning and one for the end) or another solution
     }
 
     private BoundsInt GetBoundsOfTileBlockToBeGenerated()
@@ -124,7 +120,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
         int xMin = lastBlockGenerationRightestXPosition + 1;
         int yMin = -height + 1;
         int zMin = ZPositionOfTiles;
-        int sizeX = rightestTileBlockXPosition - lastBlockGenerationRightestXPosition;
+        int sizeX = GetRightestTileInBlockXPosition() - lastBlockGenerationRightestXPosition;
         int sizeY = height;
         int sizeZ = 1;
         BoundsInt boundsOfNewTileBlock = new BoundsInt(xMin, yMin, zMin, sizeX, sizeY, sizeZ);
@@ -133,7 +129,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private void RegisterTilesGeneratedDuringCurrentUpdate()
     {
-        for (int x = lastBlockGenerationRightestXPosition + 1; x <= rightestTileBlockXPosition; x++)
+        for (int x = lastBlockGenerationRightestXPosition + 1; x <= GetRightestTileInBlockXPosition(); x++)
         {
             SpawnTileRowOnYAxis(x);
         }
@@ -161,10 +157,15 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private void DeleteTilesOutsideCameraView()
     {
-        for (int i = TilePositions.Count - 1; i > 0; i--)
-        {
-            DeleteTileOutsideCameraView(i);
-        }
+        Vector3Int minPosition = new Vector3Int(boundsOfLastUpdateTileBlock.xMin, boundsOfLastUpdateTileBlock.yMin);
+        Vector3Int maxPosition = new Vector3Int(boundsOfUpdatedTileBlock.xMin, boundsOfUpdatedTileBlock.yMax);
+        BoundsInt boundsOfTileBlockToBeDeleted = new BoundsInt();
+        boundsOfTileBlockToBeDeleted.SetMinMax(minPosition, maxPosition);
+        boundsOfTileBlockToBeDeleted.zMin = ZPositionOfTiles;
+        boundsOfTileBlockToBeDeleted.size = new Vector3Int(boundsOfTileBlockToBeDeleted.size.x, boundsOfTileBlockToBeDeleted.size.y, 1);
+        int amountOfTilesToBeGenerated = boundsOfTileBlockToBeDeleted.size.x * boundsOfTileBlockToBeDeleted.size.y;
+        TileBase[] tiles = Enumerable.Repeat<TileBase>(null, amountOfTilesToBeGenerated).ToArray();
+        myTilemap.SetTilesBlock(boundsOfTileBlockToBeDeleted, tiles);
     }
 
     private void DeleteTileOutsideCameraView(int i)
@@ -184,7 +185,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private bool IsOutsideVisibleSpace(Vector3Int tilePosition)
     {
-        return tilePosition.x < mostLeftTileInBlockXPosition;
+        return tilePosition.x < GetMostLeftTileInBlockXPosition();
     }
 
     public override void ChangeTheme(ThemeSO newTheme)
