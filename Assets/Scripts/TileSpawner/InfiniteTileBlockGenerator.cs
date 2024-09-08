@@ -6,7 +6,7 @@ using UnityEngine.Tilemaps;
 [RequireComponent(typeof(Tilemap))]
 public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 {
-    // SerializeFields
+    // SerializeFields //in SO abschieben?
     [SerializeField] int height = 1;
     [SerializeField] Transform player;
     [SerializeField] TileBase tileVisualisation;
@@ -20,7 +20,9 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     InfiniteTilePathDigger[] pathDiggers;
 
     // Properties
-    public List<Vector3Int> TilePositions { get; private set; } = new List<Vector3Int>();
+    public List<Vector3Int> TilePositions { get; private set; } = new List<Vector3Int>();//kann mit Boundaries vereinfacht werden
+    
+    //Extrahieren
     int lastBlockGenerationRightestXPosition;
     int lastMostLeftTileInBlockXPosition;
     int lowestTilePosition;
@@ -59,7 +61,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
                 digger.DigHoleToStartPath();
             }
         }
-    }
+    }//Abhängigkeit
 
     private void Update()
     {
@@ -82,6 +84,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
         roundedPlayerPositionOnLastUpdateTileBlock = GetRoundedPlayerPosition();
     }
 
+    //alle folgenden Methoden: extrahieren
     private BoundsInt GetBoundsOfUpdatedTileBlock()
     {
         int xMin = GetMostLeftTileInBlockXPosition();
@@ -193,7 +196,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
         tileVisualisation = newTheme.TileVisualisation;
     }
 
-    public bool IsBorderTopTile(Vector3Int tilePosition)
+    public bool IsBorderTopTile(Vector3Int tilePosition)//in Klasse darunter abschieben
     {
         if (tilePosition.y >= highestTilePosition - minHorizontalBorderSizeForDiggersAndBursters)
         {
