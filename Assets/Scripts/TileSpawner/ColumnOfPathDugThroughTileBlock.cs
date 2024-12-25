@@ -10,6 +10,7 @@ using Unity.VisualScripting;
 public class ColumnOfPathDugThroughTileBlock
 {
     private int[] pathFieldsHeightsOrderedByDescending;
+    private int[] pathFieldsHeightsOrderedByAscending;
 
     public ColumnOfPathDugThroughTileBlock(Vector3Int[] pathDugThroughTileBlock, int xPositionInPath)
     {
@@ -18,6 +19,7 @@ public class ColumnOfPathDugThroughTileBlock
             .Select(pos => pos.y)
             .OrderByDescending(y => y)
             .ToArray();
+        pathFieldsHeightsOrderedByAscending = pathFieldsHeightsOrderedByDescending.OrderBy(y => y).ToArray();
         if(pathFieldsHeightsOrderedByDescending.Length < 1)
         {
             throw new ArgumentOutOfRangeException("ColumnOfPathDugThroughTileBlock does not accept columns without fields of the path in it.");
@@ -26,7 +28,7 @@ public class ColumnOfPathDugThroughTileBlock
 
     public int GetMaxFieldHeight()
     {
-        return pathFieldsHeightsOrderedByDescending.Max();
+        return pathFieldsHeightsOrderedByDescending.First();
     }
 
     public int GetHighestPathHeight()
@@ -36,6 +38,27 @@ public class ColumnOfPathDugThroughTileBlock
         foreach (int currentHeight in pathFieldsHeightsOrderedByDescending)
         {
             if (lastFieldHeight - currentHeight > 1)
+            {
+                break;
+            }
+            lastFieldHeight = currentHeight;
+            pathHeight++;
+        }
+        return pathHeight;
+    }
+
+    public int GetMinFieldHeight()
+    {
+        return pathFieldsHeightsOrderedByAscending.First();
+    }
+
+    public int GetLowestPathHeight()
+    {
+        int lastFieldHeight = GetMinFieldHeight();
+        int pathHeight = 0;
+        foreach (int currentHeight in pathFieldsHeightsOrderedByAscending)
+        {
+            if (currentHeight - lastFieldHeight > 1)
             {
                 break;
             }
