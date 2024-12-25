@@ -11,7 +11,7 @@ public class VerticalTileChainSpawnerOnExceededXDistance : ExecutorOnExceededXDi
     [SerializeField] InfiniteTileBlockGenerator tileBlock;
     [SerializeField] Tilemap tilemapToSpawnOn;
 
-    InfiniteTilePathDigger[] tilePath;
+    InfiniteTilePathDigger[] tilePaths;
 
 
     protected override void Start()
@@ -20,7 +20,6 @@ public class VerticalTileChainSpawnerOnExceededXDistance : ExecutorOnExceededXDi
         {
             ThrowExceptionCausedByMissingDiggers();
         }
-        tilePath = tileBlock.gameObject.GetComponents<InfiniteTilePathDigger>();
         base.Start();
     }
 
@@ -43,20 +42,30 @@ public class VerticalTileChainSpawnerOnExceededXDistance : ExecutorOnExceededXDi
 
     private void SpawnVerticalTileChain()
     {
-        Vector3Int[] emptyTileFieldsInPathPositions = tilePath.GetEmptyTileFieldsInPathPositions();
+        Vector3Int[] emptyTileFieldsInPathPositions = tilePaths.GetEmptyTileFieldsInPathPositions();
         int columnXPosition = emptyTileFieldsInPathPositions.Max(pos => pos.x) - 3;
         ColumnOfPathDugThroughTileBlock pathColumn = new ColumnOfPathDugThroughTileBlock(emptyTileFieldsInPathPositions, columnXPosition);
         int highestFieldHeightInChain = pathColumn.GetMaxFieldHeight();
         int height = GetRandomHeightOfChainInColumn(pathColumn);
-        int highestFieldHeightOutOfChain = highestFieldHeightInChain - height;
-        for (int y = highestFieldHeightInChain; y > highestFieldHeightOutOfChain; y--)
+        int highestFieldHeightUnderneathChain = highestFieldHeightInChain - height;
+
+        if (IsViolatingBordersOfTheTileBlock(highestFieldHeightUnderneathChain))
+        {
+            return;
+        }
+
+        for (int y = highestFieldHeightInChain; y > highestFieldHeightUnderneathChain; y--)
         {
             Vector3Int spawnPosition = new Vector3Int(columnXPosition, y);
             tilemapToSpawnOn.SetTile(spawnPosition, tileToSpawn);
         }
-        ClearTilesAroundTileChain(columnXPosition, height, highestFieldHeightOutOfChain);
-        //TODO: extract class VerticalTileChain
-        //TODO: fix bug: can remove borders
+
+        ClearTilesAroundTileChain(columnXPosition, height, highestFieldHeightUnderneathChain);
+    }
+
+    private bool IsViolatingBordersOfTheTileBlock(int highestFieldHeightUnderneathChain)
+    {
+        return tileBlock.IsBorderBottomTileOrUnderneath(new Vector3Int(0, highestFieldHeightUnderneathChain - 1, 0));
     }
 
     private void ClearTilesAroundTileChain(int columnXPosition, int height, int highestFieldHeightOutOfChain)

@@ -85,7 +85,7 @@ public class TileAroundObjectBursterToEnable : MonoBehaviour
     {
         foreach(Vector3Int tile in tilesToBeDeleted.ToList())
         {
-            if(myBlockGenerator.IsBorderBottomTile(tile) || myBlockGenerator.IsBorderTopTile(tile))
+            if(myBlockGenerator.IsBorderBottomTileOrUnderneath(tile) || myBlockGenerator.IsBorderTopTileOrAbove(tile))
             {
                 tilesToBeDeleted.Remove(tile);
             }
