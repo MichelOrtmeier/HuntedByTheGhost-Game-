@@ -115,7 +115,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     }
 
     //not a real responsibility
-    public bool IsBorderTopTile(Vector3Int tilePosition)//in Klasse darunter abschieben
+    public bool IsBorderTopTileOrAbove(Vector3Int tilePosition)//in Klasse darunter abschieben
     {
         if (tilePosition.y >= highestTilePosition - minHorizontalBorderSizeForDiggersAndBursters)
         {
@@ -124,7 +124,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
         return false;
     }
 
-    public bool IsBorderBottomTile(Vector3Int tilePosition)
+    public bool IsBorderBottomTileOrUnderneath(Vector3Int tilePosition)
     {
         if (tilePosition.y <= lowestTilePosition + minHorizontalBorderSizeForDiggersAndBursters)
         {

@@ -234,7 +234,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private bool TilesToBeDeletedContainBorderPositions()
     {
-        bool answer = tilesToBeDeleted.Any(pos => !myBlockGenerator.TileBlock.Contains(pos) || myBlockGenerator.IsBorderTopTile(pos) || myBlockGenerator.IsBorderBottomTile(pos));
+        bool answer = tilesToBeDeleted.Any(pos => !myBlockGenerator.TileBlock.Contains(pos) || myBlockGenerator.IsBorderTopTileOrAbove(pos) || myBlockGenerator.IsBorderBottomTileOrUnderneath(pos));
         return answer;
     }
 
