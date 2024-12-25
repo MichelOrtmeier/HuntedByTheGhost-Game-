@@ -39,7 +39,6 @@ public class InfiniteTilePathDigger : MonoBehaviour
     Dictionary<Vector3Int, int> diggingDirectionsProbabilityPairs = new Dictionary<Vector3Int, int>();
     bool pathIsStarted;
     Vector3Int[] tilesToBeDeleted;
-    Vector3Int[] tilePositionsInFrontOfDigger;
     int maxXValueInDiggingDirections;
 
     private void Awake()
@@ -146,7 +145,6 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private void ContinueDiggingPath()
     {
-        tilePositionsInFrontOfDigger = GetTilePositionsInFrontOfDigger();
         bool succeeded = true;
         while (succeeded && DiggingForwardIsPossible())//is not able to dig forward when the edge of the generated Tile Block is reached -> influences digging behaviour
         {
@@ -154,19 +152,12 @@ public class InfiniteTilePathDigger : MonoBehaviour
         }
     }
 
-    private Vector3Int[] GetTilePositionsInFrontOfDigger()
-    {
-        Vector3Int[] tilePositionsInFrontOfDigger = myBlockGenerator.TilePositions
-            .Where((pos) => pos.x > (currentPositionInPath.x - 2))
-                .ToArray();
-        return tilePositionsInFrontOfDigger;
-    }
-
     private bool DiggingForwardIsPossible()
     {
-        return tilePositionsInFrontOfDigger.Any(pos => pos.x == currentPositionInPath.x + maxXValueInDiggingDirections);
+        return myBlockGenerator.TileBlock.xMax > currentPositionInPath.x + maxXValueInDiggingDirections;
     }
 
+    //request and executor
     private bool TryDigNextBlockOfFourTiles()
     {
         List<Vector3Int> allowedDirections = GetAllowedDirections();
@@ -243,7 +234,7 @@ public class InfiniteTilePathDigger : MonoBehaviour
 
     private bool TilesToBeDeletedContainBorderPositions()
     {
-        bool answer = tilesToBeDeleted.Any(pos => !tilePositionsInFrontOfDigger.Contains(pos) || myBlockGenerator.IsBorderTopTile(pos) || myBlockGenerator.IsBorderBottomTile(pos));
+        bool answer = tilesToBeDeleted.Any(pos => !myBlockGenerator.TileBlock.Contains(pos) || myBlockGenerator.IsBorderTopTile(pos) || myBlockGenerator.IsBorderBottomTile(pos));
         return answer;
     }
 

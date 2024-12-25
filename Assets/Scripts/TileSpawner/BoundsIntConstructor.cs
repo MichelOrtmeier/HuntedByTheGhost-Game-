@@ -14,7 +14,7 @@ internal static class BoundsIntConstructor
         max.x += cameraEdgeBuffersOnXAxis;
         min.x -= cameraEdgeBuffersOnXAxis;
         min.z = zPosition;
-        max.z = zPosition;
+        max.z = zPosition+1;//is one larger than zPositions as BoundsInt.Contains does not work properly otherwise
         min.y = -height;
         max.y = 0;
         BoundsInt filledCameraViewBounds = new BoundsInt();
