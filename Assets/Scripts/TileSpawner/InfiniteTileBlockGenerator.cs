@@ -29,6 +29,8 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     int highestTilePosition;
     BoundsInt boundsOfUpdatedTileBlock;
     BoundsInt boundsOfLastUpdateTileBlock;
+    BoundsInt boundsOfTileBlockToBeGenerated;
+    BoundsInt boundsOfTileBlockToBeDeleted;
     Vector3Int roundedPlayerPositionOnLastUpdateTileBlock;
 
     //Constants
@@ -47,7 +49,7 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     {
         boundsOfLastUpdateTileBlock = GetBoundsOfUpdatedTileBlock();
         boundsOfLastUpdateTileBlock.xMin = boundsOfLastUpdateTileBlock.xMin - 2;
-        boundsOfLastUpdateTileBlock.xMax = boundsOfLastUpdateTileBlock.xMin - 1;
+        boundsOfLastUpdateTileBlock.xMax = boundsOfLastUpdateTileBlock.xMin +1;
         UpdateTileBlock();
         EnableInfiniteTileWayGenerators();
     }
@@ -76,6 +78,10 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     private void UpdateTileBlock()
     {
         boundsOfUpdatedTileBlock = GetBoundsOfUpdatedTileBlock();
+        boundsOfTileBlockToBeGenerated = boundsOfUpdatedTileBlock
+            .GetRightRestNotOverlappingWithOtherBoundsOnXAxis(boundsOfLastUpdateTileBlock);
+        boundsOfTileBlockToBeDeleted = boundsOfLastUpdateTileBlock
+            .GetLeftRestNotOverlappingWithOtherBoundsOnXAxis(boundsOfUpdatedTileBlock);
         AddTilesToTileBlockInsideCameraView();
         RegisterTilesGeneratedDuringCurrentUpdate();
         DeleteTilesOutsideCameraView();
@@ -88,14 +94,6 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
     //alle folgenden Methoden: extrahieren
     private BoundsInt GetBoundsOfUpdatedTileBlock()
     {
-        //int xMin = GetMostLeftTileInBlockXPosition();
-        //int yMin = -height + 1;
-        //int zMin = ZPositionOfTiles;
-        //int sizeX = GetRightestTileInBlockXPosition() - GetMostLeftTileInBlockXPosition();
-        //int sizeY = height;
-        //int sizeZ = 1;
-        //BoundsInt boundsOfTileBlock = new BoundsInt(xMin, yMin, zMin, sizeX, sizeY, sizeZ);
-        //return boundsOfTileBlock;
         return BoundsIntConstructor.FillCameraView(myCamera, bufferCameraEdgeTiles, height, ZPositionOfTiles);
     }
 
@@ -114,82 +112,27 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private void AddTilesToTileBlockInsideCameraView()
     {
-        BoundsInt boundsOfTileBlockToBeGenerated = boundsOfUpdatedTileBlock.GetRightRestNotOverlappingWithOtherBoundsOnXAxis(boundsOfLastUpdateTileBlock);
         int amountOfTilesToBeGenerated = boundsOfTileBlockToBeGenerated.size.x * boundsOfTileBlockToBeGenerated.size.y;
         TileBase[] tiles = Enumerable.Repeat<TileBase>(tileVisualisation, amountOfTilesToBeGenerated).ToArray();
         myTilemap.SetTilesBlock(boundsOfTileBlockToBeGenerated, tiles);
     }
 
-    //private BoundsInt GetBoundsOfTileBlockToBeGenerated()
-    //{
-    //    int xMin = lastBlockGenerationRightestXPosition + 1;
-    //    int yMin = -height + 1;
-    //    int zMin = ZPositionOfTiles;
-    //    int sizeX = GetRightestTileInBlockXPosition() - lastBlockGenerationRightestXPosition;
-    //    int sizeY = height;
-    //    int sizeZ = 1;
-    //    BoundsInt boundsOfNewTileBlock = new BoundsInt(xMin, yMin, zMin, sizeX, sizeY, sizeZ);
-    //    return boundsOfNewTileBlock;
-    //}
-
     private void RegisterTilesGeneratedDuringCurrentUpdate()
     {
-        for (int x = boundsOfLastUpdateTileBlock.xMax + 1; x <= boundsOfUpdatedTileBlock.xMax; x++)
-        {
-            SpawnTileRowOnYAxis(x);
+        BoundsInt.PositionEnumerator enumerator = boundsOfTileBlockToBeGenerated.allPositionsWithin;
+        while (enumerator.MoveNext()) 
+        { 
+            TilePositions.Add(enumerator.Current);
         }
     }
 
-    private void SpawnTileRowOnYAxis(int x)
-    {
-        for (int y = 0; y > -height; y--)
-        {
-            TilePositions.Add(new Vector3Int(x, y, ZPositionOfTiles));
-        }
-    }
-
-    //not necessary
-    //private bool TileAtPositionExists(Vector3Int tilePosition)
-    //{
-    //    return GetTilesAtPosition(tilePosition).Count() > 0;
-    //}
-
-    //private IEnumerable<Vector3Int> GetTilesAtPosition(Vector3Int tilePosition)
-    //{
-    //    return from position in TilePositions
-    //           where position == tilePosition
-    //           select position;
-    //}
-
+    //entspricht AddTiles
     private void DeleteTilesOutsideCameraView()
     {
-        //Vector3Int minPosition = new Vector3Int(boundsOfLastUpdateTileBlock.xMin, boundsOfLastUpdateTileBlock.yMin);
-        //Vector3Int maxPosition = new Vector3Int(boundsOfUpdatedTileBlock.xMin, boundsOfUpdatedTileBlock.yMax);
-        //BoundsInt boundsOfTileBlockToBeDeleted = new BoundsInt();
-        //boundsOfTileBlockToBeDeleted.SetMinMax(minPosition, maxPosition);
-        //boundsOfTileBlockToBeDeleted.zMin = ZPositionOfTiles;
-        //boundsOfTileBlockToBeDeleted.size = new Vector3Int(boundsOfTileBlockToBeDeleted.size.x, boundsOfTileBlockToBeDeleted.size.y, 1);
-        //int amountOfTilesToBeGenerated = boundsOfTileBlockToBeDeleted.size.x * boundsOfTileBlockToBeDeleted.size.y;
-        BoundsInt boundsOfTileBlockToBeGenerated = boundsOfLastUpdateTileBlock.GetLeftRestNotOverlappingWithOtherBoundsOnXAxis(boundsOfUpdatedTileBlock);
-        int amountOfTilesToBeGenerated = boundsOfTileBlockToBeGenerated.size.x * boundsOfTileBlockToBeGenerated.size.y;
+        int amountOfTilesToBeGenerated = boundsOfTileBlockToBeDeleted.size.x * boundsOfTileBlockToBeDeleted.size.y;
         TileBase[] tiles = Enumerable.Repeat<TileBase>(null, amountOfTilesToBeGenerated).ToArray();
-        myTilemap.SetTilesBlock(boundsOfTileBlockToBeGenerated, tiles);
+        myTilemap.SetTilesBlock(boundsOfTileBlockToBeDeleted, tiles);
     }
-
-    //private void DeleteTileOutsideCameraView(int i)
-    //{
-    //    Vector3Int tilePosition = TilePositions[i];
-    //    if (!IsOutsideVisibleSpace(tilePosition))
-    //    {
-    //        return;
-    //    }
-    //    myTilemap.SetTile(tilePosition, null);
-    //    TilePositions.RemoveAt(i);
-    //    foreach(InfiniteTilePathDigger pathDigger in pathDiggers)
-    //    {
-    //        pathDigger.RemoveFromDeletedTilePositions(tilePosition);
-    //    }
-    //}
 
     private bool IsOutsideVisibleSpace(Vector3Int tilePosition)
     {
