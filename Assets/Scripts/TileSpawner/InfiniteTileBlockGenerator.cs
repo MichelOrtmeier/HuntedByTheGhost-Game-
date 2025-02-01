@@ -1,41 +1,54 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
 [RequireComponent(typeof(Tilemap))]
 public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 {
-    // SerializeFields
+    // SerializeFields //in SO abschieben?
     [SerializeField] int height = 1;
     [SerializeField] Transform player;
-    [SerializeField] RuleTile ruleTile;
+    [SerializeField] TileBase tileVisualisation;
     [SerializeField] int bufferCameraEdgeTiles = 2;
-    [SerializeField] int minBorderSizeForDiggersAndBursters;
+    [SerializeField] int minHorizontalBorderSizeForDiggersAndBursters;
     [SerializeField] float playerXPositionDifferenceBeforeUpdate = 1f;
 
     // References
     Tilemap myTilemap;
     Camera myCamera;
+    InfiniteTilePathDigger[] pathDiggers;
 
     // Properties
-    public List<Vector3Int> TilePositions { get; private set; } = new List<Vector3Int>();
+    public BoundsInt TileBlock { get => boundsOfUpdatedTileBlock; }
 
-    Vector3Int roundedPlayerPositon;
-    Vector3Int roundedCameraSize;
-    int lastLeftTilePosition;
-    int lastRightTilePosition;
+    //Extrahieren
+    int lowestTilePosition;
+    int highestTilePosition;
+    BoundsInt boundsOfUpdatedTileBlock;
+    BoundsInt boundsOfLastUpdateTileBlock;
+    BoundsInt boundsOfTileBlockToBeGenerated;
+    BoundsInt boundsOfTileBlockToBeDeleted;
+    Vector3Int roundedPlayerPositionOnLastUpdateTileBlock;
+
+    //Constants
+    public const int ZPositionOfTiles = 0;
 
     private void Awake()
     {
         myTilemap = GetComponent<Tilemap>();
         myCamera = Camera.main;
+        pathDiggers = GetComponents<InfiniteTilePathDigger>();
+        highestTilePosition = 0;
+        lowestTilePosition = -height;
     }
 
     private void Start()
     {
+        boundsOfLastUpdateTileBlock = GetBoundsOfUpdatedTileBlock();
+        boundsOfLastUpdateTileBlock.xMin = boundsOfLastUpdateTileBlock.xMin - 2;
+        boundsOfLastUpdateTileBlock.xMax = boundsOfLastUpdateTileBlock.xMin +1;
         UpdateTileBlock();
         EnableInfiniteTileWayGenerators();
     }
@@ -50,11 +63,11 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
                 digger.DigHoleToStartPath();
             }
         }
-    }
+    }//Abhängigkeit
 
     private void Update()
     {
-        if(roundedPlayerPositon.x + playerXPositionDifferenceBeforeUpdate < GetRoundedPlayerPosition().x)
+        if (roundedPlayerPositionOnLastUpdateTileBlock.x + playerXPositionDifferenceBeforeUpdate <= GetRoundedPlayerPosition().x)
         {
             UpdateTileBlock();
         }
@@ -62,105 +75,58 @@ public class InfiniteTileBlockGenerator : ChangeOnThemeChange
 
     private void UpdateTileBlock()
     {
-        roundedPlayerPositon = GetRoundedPlayerPosition();
-        roundedCameraSize = GetRoundedCameraSize();
-        lastLeftTilePosition = GetLastLeftTilePosition();
-        lastRightTilePosition = GetLastRightTilePosition();
-        SpawnTileBlockInsideCameraView();
+        boundsOfUpdatedTileBlock = GetBoundsOfUpdatedTileBlock();
+        boundsOfTileBlockToBeGenerated = boundsOfUpdatedTileBlock
+            .GetRightRestNotOverlappingWithOtherBoundsOnXAxis(boundsOfLastUpdateTileBlock);
+        boundsOfTileBlockToBeDeleted = boundsOfLastUpdateTileBlock
+            .GetLeftRestNotOverlappingWithOtherBoundsOnXAxis(boundsOfUpdatedTileBlock);
+        AddTilesToTileBlockInsideCameraView();
         DeleteTilesOutsideCameraView();
+        boundsOfLastUpdateTileBlock = boundsOfUpdatedTileBlock;
+        roundedPlayerPositionOnLastUpdateTileBlock = GetRoundedPlayerPosition();
+    }
+
+    //alle folgenden Methoden: extrahieren
+    private BoundsInt GetBoundsOfUpdatedTileBlock()
+    {
+        return BoundsIntConstructor.FillCameraView(myCamera, bufferCameraEdgeTiles, height, ZPositionOfTiles);
     }
 
     private Vector3Int GetRoundedPlayerPosition() => Vector3Int.FloorToInt(player.position);
 
-    private Vector3Int GetRoundedCameraSize()
+    private void AddTilesToTileBlockInsideCameraView()
     {
-        Vector2 cameraSize = new Vector2(myCamera.orthographicSize * myCamera.aspect, myCamera.orthographicSize);
-        Vector3Int roundedCameraSize = Vector3Int.FloorToInt(cameraSize);
-        return roundedCameraSize;
+        int amountOfTilesToBeGenerated = boundsOfTileBlockToBeGenerated.size.x * boundsOfTileBlockToBeGenerated.size.y;
+        TileBase[] tiles = Enumerable.Repeat<TileBase>(tileVisualisation, amountOfTilesToBeGenerated).ToArray();
+        myTilemap.SetTilesBlock(boundsOfTileBlockToBeGenerated, tiles);
     }
 
-    private int GetLastLeftTilePosition() => roundedPlayerPositon.x - roundedCameraSize.x - bufferCameraEdgeTiles;
-
-    private int GetLastRightTilePosition() => roundedPlayerPositon.x + roundedCameraSize.x + bufferCameraEdgeTiles;
-
-    private void SpawnTileBlockInsideCameraView()
-    {
-        for (int y = 0; y > -height; y--)
-        {
-            SpawnTileRowOnYAxis(y);
-        }
-    }
-
-    private void SpawnTileRowOnYAxis(int y)
-    {
-        for (int x = lastLeftTilePosition; x <= lastRightTilePosition; x++)
-        {
-            AddTileAt(new Vector3Int(x, y, 0));
-        }
-    }
-
-    private void AddTileAt(Vector3Int tilePosition)
-    {
-        if (!TileAtPositionExists(tilePosition))
-        {
-            myTilemap.SetTile(tilePosition, ruleTile);
-            TilePositions.Add(tilePosition);
-        }
-    }
-
-    private bool TileAtPositionExists(Vector3Int tilePosition)
-    {
-        return GetTilesAtPosition(tilePosition).Count() > 0;
-    }
-
-    private IEnumerable<Vector3Int> GetTilesAtPosition(Vector3Int tilePosition)
-    {
-        return from position in TilePositions
-               where position == tilePosition
-               select position;
-    }
-
+    //entspricht AddTiles
     private void DeleteTilesOutsideCameraView()
     {
-        for (int i = TilePositions.Count - 1; i > 0; i--)
-        {
-            if (IsOutsideVisibleSpace(TilePositions[i]))
-            {
-                DeleteTileOutsideCameraView(TilePositions[i]);
-            }
-        }
-    }
-
-    private void DeleteTileOutsideCameraView(Vector3Int tilePosition)
-    {
-        myTilemap.SetTile(tilePosition, null);
-        TilePositions.Remove(tilePosition);
-    }
-
-    private bool IsOutsideVisibleSpace(Vector3Int tilePosition)
-    {
-        return tilePosition.x < lastLeftTilePosition;
+        int amountOfTilesToBeGenerated = boundsOfTileBlockToBeDeleted.size.x * boundsOfTileBlockToBeDeleted.size.y;
+        TileBase[] tiles = Enumerable.Repeat<TileBase>(null, amountOfTilesToBeGenerated).ToArray();
+        myTilemap.SetTilesBlock(boundsOfTileBlockToBeDeleted, tiles);
     }
 
     public override void ChangeTheme(ThemeSO newTheme)
     {
-        ruleTile = newTheme.RuleTile;
+        tileVisualisation = newTheme.TileVisualisation;
     }
 
-    public bool IsBorderTopTile(Vector3Int tilePosition)
+    //not a real responsibility
+    public bool IsBorderTopTileOrAbove(Vector3Int tilePosition)//in Klasse darunter abschieben
     {
-        int highestTilePosition = TilePositions.Max(pos => pos.y);
-        if (tilePosition.y >= highestTilePosition - minBorderSizeForDiggersAndBursters)
+        if (tilePosition.y >= highestTilePosition - minHorizontalBorderSizeForDiggersAndBursters)
         {
             return true;
         }
         return false;
     }
 
-    public bool IsBorderBottomTile(Vector3Int tilePosition)
+    public bool IsBorderBottomTileOrUnderneath(Vector3Int tilePosition)
     {
-        int lowestTilePosition = TilePositions.Min(pos => pos.y);
-        if (tilePosition.y <= lowestTilePosition + minBorderSizeForDiggersAndBursters)
+        if (tilePosition.y <= lowestTilePosition + minHorizontalBorderSizeForDiggersAndBursters)
         {
             return true;
         }
