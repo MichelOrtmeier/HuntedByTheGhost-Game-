@@ -48,8 +48,15 @@ public class VerticalTileChainSpawnerFromTheCeiling : VerticalTileChainSpawnerOn
             , Enumerable.Repeat<TileBase>(null, 5 * (height + 1)).ToArray());
     }
 
+    //TODO: is equal to floor except lowestPathHeight => extract
     private int GetRandomHeightOfChainInColumn(ColumnOfPathDugThroughTileBlock pathColumn)
     {
-        return UnityEngine.Random.Range(minTileChainHeight, pathColumn.GetHighestPathHeight());
+        int lowestPathHeight = pathColumn.GetHighestPathHeight();
+        if (lowestPathHeight <= maxTileChainHeight)
+            return Random.Range(minTileChainHeight, lowestPathHeight+1);
+        else
+        {
+            return Random.Range(minTileChainHeight, maxTileChainHeight+1);
+        }
     }
 }

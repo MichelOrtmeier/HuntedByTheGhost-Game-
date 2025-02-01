@@ -7,6 +7,7 @@ public abstract class VerticalTileChainSpawnerOnExceededXDistance : ExecutorOnEx
 {
     [SerializeField] protected TileBase tileToSpawn;
     [SerializeField] protected int minTileChainHeight = 2;
+    [SerializeField] protected int maxTileChainHeight = int.MaxValue;
     [SerializeField] protected InfiniteTileBlockGenerator tileBlock;
     [SerializeField] protected Tilemap tilemapToSpawnOn;
 

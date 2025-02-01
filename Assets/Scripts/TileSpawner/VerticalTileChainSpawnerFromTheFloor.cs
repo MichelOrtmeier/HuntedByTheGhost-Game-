@@ -40,7 +40,13 @@ public class VerticalTileChainSpawnerFromTheFloor : VerticalTileChainSpawnerOnEx
 
     private int GetRandomHeightOfChainInColumn(ColumnOfPathDugThroughTileBlock pathColumn)
     {
-        return Random.Range(minTileChainHeight, pathColumn.GetLowestPathHeight());
+        int lowestPathHeight = pathColumn.GetLowestPathHeight();
+        if(lowestPathHeight <= maxTileChainHeight)
+            return Random.Range(minTileChainHeight, lowestPathHeight+1);
+        else
+        {
+            return Random.Range(minTileChainHeight, maxTileChainHeight+1);
+        }
     }
 
     private bool IsViolatingBordersOfTheTileBlock(int lowestFieldHeightAboveChain)
